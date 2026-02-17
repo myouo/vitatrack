@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="primary">#1976D2</color>
+    <color name="primary_dark">#1565C0</color>
+    <color name="primary_light">#42A5F5</color>
+    <color name="accent">#FF5722</color>
+    
+    <color name="white">#FFFFFF</color>
+    <color name="black">#000000</color>
+    <color name="gray">#9E9E9E</color>
+    <color name="gray_light">#E0E0E0</color>
+    
+    <color name="severity_high">#D32F2F</color>
+    <color name="severity_medium">#FFA000</color>
+    <color name="severity_low">#388E3C</color>
+    
+    <color name="chart_hr">#F44336</color>
+    <color name="chart_accel">#2196F3</color>
+    <color name="chart_step">#4CAF50</color>
+</resources>

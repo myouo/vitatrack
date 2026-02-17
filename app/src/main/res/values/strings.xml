@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Health Anomaly</string>
+
+    <!-- Navigation -->
+    <string name="nav_dashboard">Dashboard</string>
+    <string name="nav_chart">Chart</string>
+    <string name="nav_events">Events</string>
+    <string name="nav_settings">Settings</string>
+
+    <!-- Dashboard -->
+    <string name="collection_control">Collection Control</string>
+    <string name="start_collection">Start Collection</string>
+    <string name="stop_collection">Stop Collection</string>
+    <string name="status_collecting">Status: Collecting</string>
+    <string name="status_stopped">Status: Stopped</string>
+
+    <!-- Real-time Data -->
+    <string name="realtime_data">Real-time Data</string>
+    <string name="heart_rate_label">Heart Rate:</string>
+    <string name="heart_rate_value">%d BPM</string>
+    <string name="heart_rate_none">-- BPM</string>
+    <string name="step_freq_label">Step Frequency:</string>
+    <string name="step_freq_value">%.1f Hz</string>
+    <string name="step_freq_none">-- Hz</string>
+    <string name="motion_label">Motion:</string>
+    <string name="motion_active">Active</string>
+    <string name="motion_inactive">Inactive</string>
+
+    <!-- BLE -->
+    <string name="ble_connection">BLE Connection</string>
+    <string name="ble_connected">Connected</string>
+    <string name="ble_connecting">Connecting...</string>
+    <string name="ble_disconnected">Disconnected</string>
+    <string name="ble_scan">Scan for Devices</string>
+    <string name="ble_disconnect">Disconnect</string>
+    <string name="ble_cancel">Cancel</string>
+    <string name="select_device">Select Device</string>
+
+    <!-- Chart -->
+    <string name="chart_heart_rate">Heart Rate</string>
+    <string name="chart_accel">Acceleration</string>
+    <string name="chart_step_freq">Step Frequency</string>
+
+    <!-- Events -->
+    <string name="no_events">No anomaly events recorded</string>
+    <string name="acknowledged">Acknowledged</string>
+    <string name="acknowledged_label">Acknowledged:</string>
+
+    <!-- Settings -->
+    <string name="hr_thresholds">Heart Rate Thresholds</string>
+    <string name="hr_high_threshold">High Heart Rate Threshold</string>
+    <string name="hr_low_threshold">Low Heart Rate Threshold</string>
+    <string name="threshold_bpm">%d BPM</string>
+    <string name="step_freq_thresholds">Step Frequency Thresholds</string>
+    <string name="step_freq_high_threshold">High Step Frequency Threshold</string>
+    <string name="step_freq_low_threshold">Low Step Frequency Threshold</string>
+    <string name="threshold_hz">%.1f Hz</string>
+    <string name="fall_detection">Fall Detection</string>
+    <string name="data_export">Data Export</string>
+    <string name="export_csv">Export to CSV</string>
+    <string name="export_success">Exported to: %s</string>
+    <string name="export_error">Export failed</string>
+
+    <!-- Dialog -->
+    <string name="close">Close</string>
+    <string name="acknowledge">Acknowledge</string>
+    <string name="cancel">Cancel</string>
+</resources>

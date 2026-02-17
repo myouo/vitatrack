@@ -1,0 +1,57 @@
+package com.example.healthanomaly.domain.repository
+
+import com.example.healthanomaly.domain.model.AnomalyEvent
+import com.example.healthanomaly.domain.model.FeatureWindow
+import kotlinx.coroutines.flow.Flow
+
+/**
+ * Repository interface for anomaly events and feature windows.
+ */
+interface AnomalyRepository {
+    /**
+     * Flow of all anomaly events.
+     */
+    val anomalyEventsFlow: Flow<List<AnomalyEvent>>
+    
+    /**
+     * Flow of recent feature windows.
+     */
+    val featureWindowsFlow: Flow<List<FeatureWindow>>
+    
+    /**
+     * Insert a new anomaly event.
+     * @return The ID of the inserted event
+     */
+    suspend fun insertAnomalyEvent(event: AnomalyEvent): Long
+    
+    /**
+     * Insert a new feature window.
+     * @return The ID of the inserted window
+     */
+    suspend fun insertFeatureWindow(window: FeatureWindow): Long
+    
+    /**
+     * Get all anomaly events (for export).
+     */
+    suspend fun getAllAnomalyEvents(): List<AnomalyEvent>
+    
+    /**
+     * Get all feature windows (for export).
+     */
+    suspend fun getAllFeatureWindows(): List<FeatureWindow>
+    
+    /**
+     * Get anomaly events within a time range.
+     */
+    suspend fun getAnomalyEventsInRange(startMs: Long, endMs: Long): List<AnomalyEvent>
+    
+    /**
+     * Mark an event as acknowledged.
+     */
+    suspend fun acknowledgeEvent(eventId: Long)
+    
+    /**
+     * Delete all data.
+     */
+    suspend fun clearAllData()
+}
