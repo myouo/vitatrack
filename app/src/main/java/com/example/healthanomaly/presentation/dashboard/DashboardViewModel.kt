@@ -2,6 +2,8 @@ package com.example.healthanomaly.presentation.dashboard
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.healthanomaly.domain.repository.BleConnectionState
+import com.example.healthanomaly.domain.repository.BleDevice
 import com.example.healthanomaly.domain.usecase.CollectImuDataUseCase
 import com.example.healthanomaly.domain.usecase.StartBleScanUseCase
 import com.example.healthanomaly.service.DataCollectionService

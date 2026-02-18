@@ -154,7 +154,7 @@ class DashboardFragment : Fragment() {
         
         AlertDialog.Builder(requireContext())
             .setTitle(R.string.select_device)
-            .setItems(deviceNames) { _, which ->
+            .setItems(deviceNames) { _: android.content.DialogInterface, which: Int ->
                 viewModel.connectToDevice(devices[which].address)
             }
             .setNegativeButton(R.string.cancel, null)
