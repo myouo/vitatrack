@@ -127,3 +127,29 @@ class SettingsFragment : Fragment() {
      * Observe ViewModel state.
      */
     private fun observeState() {
+        viewLifecycleOwner.lifecycleScope.launch {
+            viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
+                viewModel.state.collectLatest { state ->
+                    binding.seekbarHrHigh.progress = state.hrHighThreshold
+                    binding.tvHrHighValue.text = getString(R.string.threshold_bpm, state.hrHighThreshold)
+                    
+                    binding.seekbarHrLow.progress = state.hrLowThreshold - 20
+                    binding.tvHrLowValue.text = getString(R.string.threshold_bpm, state.hrLowThreshold)
+                    
+                    binding.seekbarStepFreqHigh.progress = (state.stepFreqHighThreshold * 10).toInt()
+                    binding.tvStepFreqHighValue.text = getString(R.string.threshold_hz, state.stepFreqHighThreshold)
+                    
+                    binding.seekbarStepFreqLow.progress = (state.stepFreqLowThreshold * 10).toInt()
+                    binding.tvStepFreqLowValue.text = getString(R.string.threshold_hz, state.stepFreqLowThreshold)
+                    
+                    binding.switchFallDetection.isChecked = state.isFallDetectionEnabled
+                }
+            }
+        }
+    }
+    
+    override fun onDestroyView() {
+        super.onDestroyView()
+        _binding = null
+    }
+}

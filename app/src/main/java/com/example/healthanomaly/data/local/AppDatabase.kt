@@ -19,5 +19,7 @@ import com.example.healthanomaly.data.local.entity.FeatureWindowEntity
     version = 1,
     exportSchema = false
 )
-abstract class AppDatabase : RoomDatabase() {
-    
+    abstract class AppDatabase : RoomDatabase() {
+    abstract fun anomalyEventDao(): AnomalyEventDao
+    abstract fun featureWindowDao(): FeatureWindowDao
+}

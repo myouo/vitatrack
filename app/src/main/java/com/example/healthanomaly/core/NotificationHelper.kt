@@ -25,6 +25,7 @@ class NotificationHelper @Inject constructor(
     companion object {
         const val CHANNEL_ID_ALERTS = "health_alerts"
         const val CHANNEL_ID_FOREGROUND = "foreground_service"
+        const val FOREGROUND_NOTIFICATION_ID = 1001
     }
     
     init {
@@ -118,3 +119,24 @@ class NotificationHelper @Inject constructor(
             context,
             0,
             stopIntent,
+            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+        )
+        
+        val notification = NotificationCompat.Builder(context, CHANNEL_ID_FOREGROUND)
+            .setSmallIcon(R.drawable.ic_notification)
+            .setContentTitle(title)
+            .setContentText(content)
+            .setPriority(NotificationCompat.PRIORITY_LOW)
+            .setOngoing(true)
+            .setContentIntent(pendingIntent)
+            .addAction(R.drawable.ic_stop, "Stop", stopPendingIntent)
+            .build()
+        
+        try {
+            NotificationManagerCompat.from(context)
+                .notify(FOREGROUND_NOTIFICATION_ID, notification)
+        } catch (e: SecurityException) {
+            // Notification permission not granted
+        }
+    }
+}

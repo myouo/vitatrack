@@ -150,3 +150,81 @@ class ChartFragment : Fragment() {
             }
         }
         
+        if (hrData.isEmpty()) {
+            binding.chartHeartRate.clear()
+            return
+        }
+        
+        val dataSet = LineDataSet(hrData, "Heart Rate").apply {
+            color = Color.RED
+            setDrawCircles(false)
+            setDrawValues(false)
+            mode = LineDataSet.Mode.CUBIC_BEZIER
+        }
+        
+        binding.chartHeartRate.data = LineData(dataSet)
+        binding.chartHeartRate.invalidate()
+    }
+    
+    /**
+     * Update accelerometer chart.
+     */
+    private fun updateAccelChart(windows: List<FeatureWindow>) {
+        val accelData = windows.map { window ->
+            Entry(window.timestampMs.toFloat(), window.rmsAccel)
+        }
+        
+        if (accelData.isEmpty()) {
+            binding.chartAccel.clear()
+            return
+        }
+        
+        val dataSet = LineDataSet(accelData, "RMS Accel").apply {
+            color = Color.BLUE
+            setDrawCircles(false)
+            setDrawValues(false)
+            mode = LineDataSet.Mode.CUBIC_BEZIER
+        }
+        
+        binding.chartAccel.data = LineData(dataSet)
+        binding.chartAccel.invalidate()
+    }
+    
+    /**
+     * Update step frequency chart.
+     */
+    private fun updateStepFreqChart(windows: List<FeatureWindow>) {
+        val stepData = windows.map { window ->
+            Entry(window.timestampMs.toFloat(), window.stepFreqHz)
+        }
+        
+        if (stepData.isEmpty()) {
+            binding.chartStepFreq.clear()
+            return
+        }
+        
+        val dataSet = LineDataSet(stepData, "Step Freq").apply {
+            color = Color.GREEN
+            setDrawCircles(false)
+            setDrawValues(false)
+            mode = LineDataSet.Mode.CUBIC_BEZIER
+        }
+        
+        binding.chartStepFreq.data = LineData(dataSet)
+        binding.chartStepFreq.invalidate()
+    }
+    
+    override fun onDestroyView() {
+        super.onDestroyView()
+        _binding = null
+    }
+    
+    private class TimeAxisFormatter : ValueFormatter() {
+        private val dateFormat = SimpleDateFormat("HH:mm:ss", Locale.US)
+        
+        override fun getFormattedValue(value: Float): String {
+            return dateFormat.format(Date(value.toLong()))
+        }
+    }
+}
+        

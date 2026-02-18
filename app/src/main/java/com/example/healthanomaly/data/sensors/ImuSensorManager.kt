@@ -14,6 +14,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.callbackFlow
 import java.util.concurrent.ConcurrentLinkedQueue
+import android.os.SystemClock
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -128,3 +129,27 @@ class ImuSensorManager @Inject constructor(
             
             // Only emit data when we have both accel and gyro (or accel if gyro unavailable)
             if (lastTimestamp > 0 && timestamp > lastTimestamp) {
+                val imuData = ImuData(
+                    timestampMs = timestamp,
+                    accelX = lastAccel[0],
+                    accelY = lastAccel[1],
+                    accelZ = lastAccel[2],
+                    gyroX = lastGyro[0],
+                    gyroY = lastGyro[1],
+                    gyroZ = lastGyro[2]
+                )
+                ringBuffer.add(imuData)
+                
+                val bufferCutoffTime = timestamp - RING_BUFFER_DURATION_MS
+                while (ringBuffer.peek()?.timestampMs ?: 0 < bufferCutoffTime) {
+                    ringBuffer.poll()
+                }
+                
+                _imuDataFlow.value = imuData
+            }
+            lastTimestamp = timestamp
+        }
+        
+        override fun onAccuracyChanged(sensor: Sensor, accuracy: Int) {}
+    }
+}

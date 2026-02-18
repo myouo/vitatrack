@@ -85,3 +85,13 @@ class EventDetailDialog : DialogFragment() {
             AnomalyType.HEART_RATE_SUDDEN_CHANGE -> "Sudden Heart Rate Change"
             AnomalyType.STEP_FREQ_HIGH -> "High Step Frequency"
             AnomalyType.STEP_FREQ_LOW -> "Low Step Frequency"
+            AnomalyType.FALL_DETECTED -> "Fall Detected"
+            AnomalyType.ACTIVITY_CHANGE -> "Activity Change"
+        }
+    }
+    
+    override fun onDestroyView() {
+        super.onDestroyView()
+        _binding = null
+    }
+}

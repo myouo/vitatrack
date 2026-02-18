@@ -121,4 +121,47 @@ class DashboardFragment : Fragment() {
             getString(R.string.status_stopped)
         }
         
-        // Heart rate
+        // BLE connection status
+        binding.btnBleConnect.text = when {
+            state.isBleConnected -> getString(R.string.disconnect)
+            state.connectionState == BleConnectionState.CONNECTING -> getString(R.string.connecting)
+            else -> getString(R.string.connect)
+        }
+        
+        // Heart rate display
+        binding.tvHeartRate.text = state.currentHeartRate?.let {
+            getString(R.string.heart_rate_value, it)
+        } ?: getString(R.string.heart_rate_none)
+        
+        // Step frequency display
+        binding.tvStepFreq.text = state.currentStepFreq?.let {
+            getString(R.string.step_freq_value, String.format("%.1f", it))
+        } ?: getString(R.string.step_freq_none)
+    }
+    
+    /**
+     * Show BLE device picker dialog.
+     */
+    private fun showDevicePicker() {
+        val devices = viewModel.state.value.availableDevices
+        if (devices.isEmpty()) {
+            Toast.makeText(requireContext(), R.string.no_devices_found, Toast.LENGTH_SHORT).show()
+            return
+        }
+        
+        val deviceNames = devices.map { it.name ?: it.address }.toTypedArray()
+        
+        AlertDialog.Builder(requireContext())
+            .setTitle(R.string.select_device)
+            .setItems(deviceNames) { _, which ->
+                viewModel.connectBle(devices[which].address)
+            }
+            .setNegativeButton(R.string.cancel, null)
+            .show()
+    }
+    
+    override fun onDestroyView() {
+        super.onDestroyView()
+        _binding = null
+    }
+}

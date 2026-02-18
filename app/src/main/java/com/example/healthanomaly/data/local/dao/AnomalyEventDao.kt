@@ -50,3 +50,10 @@ interface AnomalyEventDao {
     @Query("SELECT * FROM anomaly_events WHERE timestamp_ms BETWEEN :startMs AND :endMs ORDER BY timestamp_ms ASC")
     suspend fun getInRange(startMs: Long, endMs: Long): List<AnomalyEventEntity>
     
+    /**
+     * Delete all events.
+     */
+    @Query("DELETE FROM anomaly_events")
+    suspend fun deleteAll()
+}
+    

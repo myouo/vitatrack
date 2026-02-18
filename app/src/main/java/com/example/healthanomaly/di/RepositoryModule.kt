@@ -30,3 +30,10 @@ abstract class RepositoryModule {
     abstract fun bindBleRepository(
         impl: BleRepositoryImpl
     ): BleRepository
+    
+    @Binds
+    @Singleton
+    abstract fun bindAnomalyRepository(
+        impl: AnomalyRepositoryImpl
+    ): AnomalyRepository
+}

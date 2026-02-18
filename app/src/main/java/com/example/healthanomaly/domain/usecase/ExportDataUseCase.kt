@@ -115,3 +115,37 @@ class ExportDataUseCase @Inject constructor(
     
     /**
      * Save content to Downloads folder using MediaStore.
+     */
+    private fun saveToDownloads(filename: String, content: String): String? {
+        return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            val contentValues = ContentValues().apply {
+                put(MediaStore.Downloads.DISPLAY_NAME, filename)
+                put(MediaStore.Downloads.MIME_TYPE, "text/csv")
+                put(MediaStore.Downloads.RELATIVE_PATH, Environment.DIRECTORY_DOWNLOADS + "/" + EXPORT_FOLDER)
+            }
+            
+            val uri = context.contentResolver.insert(
+                MediaStore.Downloads.EXTERNAL_CONTENT_URI,
+                contentValues
+            )
+            
+            uri?.let { outputUri ->
+                context.contentResolver.openOutputStream(outputUri)?.use { outputStream ->
+                    outputStream.write(content.toByteArray())
+                }
+                outputUri.toString()
+            }
+        } else {
+            val downloadsDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS)
+            val exportDir = File(downloadsDir, EXPORT_FOLDER)
+            if (!exportDir.exists()) {
+                exportDir.mkdirs()
+            }
+            val file = File(exportDir, filename)
+            FileOutputStream(file).use { fos ->
+                fos.write(content.toByteArray())
+            }
+            file.absolutePath
+        }
+    }
+}

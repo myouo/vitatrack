@@ -195,3 +195,60 @@ class BleManager @Inject constructor(
                     bluetoothGatt = null
                     
                     // Auto-reconnect (simplified - could be more sophisticated)
+                }
+            }
+        }
+        
+        override fun onServicesDiscovered(gatt: BluetoothGatt, status: Int) {
+            if (status == BluetoothGatt.GATT_SUCCESS) {
+                // Enable heart rate notifications
+                val heartRateService = gatt.getService(HEART_RATE_SERVICE_UUID)
+                heartRateService?.getCharacteristic(HEART_RATE_MEASUREMENT_UUID)?.let { characteristic ->
+                    gatt.setCharacteristicNotification(characteristic, true)
+                    characteristic.getDescriptor(CLIENT_CONFIG_DESCRIPTOR_UUID)?.let { descriptor ->
+                        descriptor.value = BluetoothGattDescriptor.ENABLE_NOTIFICATION_VALUE
+                        gatt.writeDescriptor(descriptor)
+                    }
+                }
+            }
+        }
+        
+        override fun onCharacteristicChanged(
+            gatt: BluetoothGatt,
+            characteristic: BluetoothGattCharacteristic,
+            value: ByteArray
+        ) {
+            if (characteristic.uuid == HEART_RATE_MEASUREMENT_UUID) {
+                val heartRate = parseHeartRate(value)
+                val data = HeartRateData(
+                    bpm = heartRate,
+                    timestampMs = System.currentTimeMillis()
+                )
+                _heartRateFlow.value = data
+            }
+        }
+        
+        private fun parseHeartRate(value: ByteArray): Int {
+            return if (value.isNotEmpty()) {
+                val flags = value[0].toInt()
+                if (flags and 0x01 != 0) {
+                    // Heart Rate Value Format is UINT16
+                    if (value.size >= 3) {
+                        (value[1].toInt() and 0xFF) or ((value[2].toInt() and 0xFF) shl 8)
+                    } else {
+                        0
+                    }
+                } else {
+                    // Heart Rate Value Format is UINT8
+                    if (value.size >= 2) {
+                        value[1].toInt() and 0xFF
+                    } else {
+                        0
+                    }
+                }
+            } else {
+                0
+            }
+        }
+    }
+}

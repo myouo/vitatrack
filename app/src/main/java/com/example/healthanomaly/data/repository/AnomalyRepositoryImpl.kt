@@ -38,3 +38,26 @@ class AnomalyRepositoryImpl @Inject constructor(
         featureWindowDao.insert(FeatureWindowEntity.fromDomain(window))
     
     override suspend fun getAllAnomalyEvents(): List<AnomalyEvent> =
+        anomalyEventDao.getAll().map { it.toDomain() }
+    
+    override suspend fun getAllFeatureWindows(): List<FeatureWindow> =
+        featureWindowDao.getAll().map { it.toDomain() }
+    
+    override suspend fun getRecentAnomalyEvents(limit: Int): List<AnomalyEvent> =
+        anomalyEventDao.getRecent(limit).map { it.toDomain() }
+    
+    override suspend fun getAnomalyEventsInRange(startMs: Long, endMs: Long): List<AnomalyEvent> =
+        anomalyEventDao.getInRange(startMs, endMs).map { it.toDomain() }
+    
+    override suspend fun acknowledgeEvent(eventId: Long) {
+        val events = anomalyEventDao.getRecent(Int.MAX_VALUE)
+        val event = events.find { it.id == eventId }
+        event?.let {
+            anomalyEventDao.update(it.copy(acknowledged = true))
+        }
+    }
+    
+    override suspend fun clearAllData() {
+        anomalyEventDao.deleteAll()
+    }
+}

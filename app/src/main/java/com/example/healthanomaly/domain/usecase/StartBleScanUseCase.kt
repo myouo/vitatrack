@@ -50,3 +50,6 @@ class StartBleScanUseCase @Inject constructor(
     
     /**
      * Check if connected.
+     */
+    fun isConnected(): Boolean = bleRepository.isConnected()
+}
