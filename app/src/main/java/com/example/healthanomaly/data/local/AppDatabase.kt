@@ -20,6 +20,10 @@ import com.example.healthanomaly.data.local.entity.FeatureWindowEntity
     exportSchema = false
 )
     abstract class AppDatabase : RoomDatabase() {
+    companion object {
+        const val DATABASE_NAME = "health_anomaly_db"
+    }
+    
     abstract fun anomalyEventDao(): AnomalyEventDao
     abstract fun featureWindowDao(): FeatureWindowDao
 }

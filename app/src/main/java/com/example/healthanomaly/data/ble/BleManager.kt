@@ -221,8 +221,9 @@ class BleManager @Inject constructor(
             if (characteristic.uuid == HEART_RATE_MEASUREMENT_UUID) {
                 val heartRate = parseHeartRate(value)
                 val data = HeartRateData(
-                    bpm = heartRate,
-                    timestampMs = System.currentTimeMillis()
+                    heartRateBpm = heartRate,
+                    timestampMs = System.currentTimeMillis(),
+                    deviceAddress = gatt.device?.address ?: ""
                 )
                 _heartRateFlow.value = data
             }

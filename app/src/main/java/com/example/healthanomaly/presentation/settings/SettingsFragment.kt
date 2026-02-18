@@ -129,7 +129,7 @@ class SettingsFragment : Fragment() {
     private fun observeState() {
         viewLifecycleOwner.lifecycleScope.launch {
             viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
-                viewModel.state.collectLatest { state ->
+                viewModel.uiState.collectLatest { state ->
                     binding.seekbarHrHigh.progress = state.hrHighThreshold
                     binding.tvHrHighValue.text = getString(R.string.threshold_bpm, state.hrHighThreshold)
                     
@@ -142,7 +142,7 @@ class SettingsFragment : Fragment() {
                     binding.seekbarStepFreqLow.progress = (state.stepFreqLowThreshold * 10).toInt()
                     binding.tvStepFreqLowValue.text = getString(R.string.threshold_hz, state.stepFreqLowThreshold)
                     
-                    binding.switchFallDetection.isChecked = state.isFallDetectionEnabled
+                    binding.switchFallDetection.isChecked = state.fallDetectionEnabled
                 }
             }
         }

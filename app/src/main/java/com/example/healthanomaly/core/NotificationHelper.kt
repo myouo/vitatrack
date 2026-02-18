@@ -102,7 +102,7 @@ class NotificationHelper @Inject constructor(
     /**
      * Show foreground service notification.
      */
-    fun showForegroundNotification(title: String, content: String) {
+    fun showForegroundNotification(title: String, content: String): android.app.Notification {
         val intent = Intent(context, MainActivity::class.java).apply {
             flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
         }
@@ -135,6 +135,20 @@ class NotificationHelper @Inject constructor(
         try {
             NotificationManagerCompat.from(context)
                 .notify(FOREGROUND_NOTIFICATION_ID, notification)
+        } catch (e: SecurityException) {
+            // Notification permission not granted
+        }
+        
+        return notification
+    }
+    
+    private fun formatAnomalyType(type: com.example.healthanomaly.domain.model.AnomalyType): String {
+        return type.name.replace("_", " ").lowercase().replaceFirstChar { it.uppercase() }
+    }
+    
+    fun cancelForegroundNotification() {
+        try {
+            NotificationManagerCompat.from(context).cancel(FOREGROUND_NOTIFICATION_ID)
         } catch (e: SecurityException) {
             // Notification permission not granted
         }

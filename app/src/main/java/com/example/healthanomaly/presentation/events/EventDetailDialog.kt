@@ -86,7 +86,8 @@ class EventDetailDialog : DialogFragment() {
             AnomalyType.STEP_FREQ_HIGH -> "High Step Frequency"
             AnomalyType.STEP_FREQ_LOW -> "Low Step Frequency"
             AnomalyType.FALL_DETECTED -> "Fall Detected"
-            AnomalyType.ACTIVITY_CHANGE -> "Activity Change"
+            AnomalyType.GAIT_SUDDEN_CHANGE -> "Sudden Gait Change"
+            AnomalyType.MOTION_INTENSITY_ANOMALY -> "Motion Intensity Anomaly"
         }
     }
     

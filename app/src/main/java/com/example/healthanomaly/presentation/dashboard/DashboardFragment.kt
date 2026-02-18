@@ -5,6 +5,7 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
@@ -123,9 +124,9 @@ class DashboardFragment : Fragment() {
         
         // BLE connection status
         binding.btnBleConnect.text = when {
-            state.isBleConnected -> getString(R.string.disconnect)
-            state.connectionState == BleConnectionState.CONNECTING -> getString(R.string.connecting)
-            else -> getString(R.string.connect)
+            state.isBleConnected -> getString(R.string.ble_disconnect)
+            state.connectionState == BleConnectionState.CONNECTING -> getString(R.string.ble_connecting)
+            else -> getString(R.string.ble_connect)
         }
         
         // Heart rate display
@@ -143,7 +144,7 @@ class DashboardFragment : Fragment() {
      * Show BLE device picker dialog.
      */
     private fun showDevicePicker() {
-        val devices = viewModel.state.value.availableDevices
+        val devices = viewModel.state.value.scanResults
         if (devices.isEmpty()) {
             Toast.makeText(requireContext(), R.string.no_devices_found, Toast.LENGTH_SHORT).show()
             return
@@ -154,7 +155,7 @@ class DashboardFragment : Fragment() {
         AlertDialog.Builder(requireContext())
             .setTitle(R.string.select_device)
             .setItems(deviceNames) { _, which ->
-                viewModel.connectBle(devices[which].address)
+                viewModel.connectToDevice(devices[which].address)
             }
             .setNegativeButton(R.string.cancel, null)
             .show()

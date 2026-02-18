@@ -34,7 +34,9 @@
     <string name="ble_disconnected">Disconnected</string>
     <string name="ble_scan">Scan for Devices</string>
     <string name="ble_disconnect">Disconnect</string>
+    <string name="ble_connect">Connect</string>
     <string name="ble_cancel">Cancel</string>
+    <string name="no_devices_found">No devices found</string>
     <string name="select_device">Select Device</string>
 
     <!-- Chart -->

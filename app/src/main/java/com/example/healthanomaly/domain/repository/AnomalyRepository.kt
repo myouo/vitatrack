@@ -41,6 +41,11 @@ interface AnomalyRepository {
     suspend fun getAllFeatureWindows(): List<FeatureWindow>
     
     /**
+     * Get recent anomaly events.
+     */
+    suspend fun getRecentAnomalyEvents(limit: Int): List<AnomalyEvent>
+    
+    /**
      * Get anomaly events within a time range.
      */
     suspend fun getAnomalyEventsInRange(startMs: Long, endMs: Long): List<AnomalyEvent>
