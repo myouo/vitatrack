@@ -114,7 +114,9 @@ class NotificationHelper @Inject constructor(
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
         )
         
-        val stopIntent = Intent(context, "com.example.healthanomaly.STOP_SERVICE")
+        val stopIntent = Intent().apply {
+            action = "com.example.healthanomaly.STOP_SERVICE"
+        }
         val stopPendingIntent = PendingIntent.getBroadcast(
             context,
             0,

@@ -154,17 +154,15 @@ class BleManager @Inject constructor(
             val device = result.device
             val services = result.scanRecord?.serviceUuids
             
-            // Filter for devices with Heart Rate Service
-            if (services?.contains(HEART_RATE_SERVICE_UUID) == true ||
-                result.scanRecord?.serviceUuids == null) { // Some devices don't advertise services
-                
+            val hasHeartRateService = services?.any { it.uuid == HEART_RATE_SERVICE_UUID } == true
+            
+            if (hasHeartRateService || services.isNullOrEmpty()) {
                 val bleDevice = BleDevice(
                     address = device.address,
                     name = device.name,
                     rssi = result.rssi
                 )
                 
-                // Update or add device
                 val current = _scanResultsFlow.value.toMutableList()
                 val existingIndex = current.indexOfFirst { it.address == bleDevice.address }
                 if (existingIndex >= 0) {
