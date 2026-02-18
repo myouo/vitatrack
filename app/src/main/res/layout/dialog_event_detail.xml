@@ -58,3 +58,5 @@
             android:layout_marginStart="8dp"
             android:text="No"
             android:textSize="14sp" />
+    </LinearLayout>
+</LinearLayout>
