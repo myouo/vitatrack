@@ -1,27 +1,15 @@
+package com.example.healthanomaly.domain.model
+
+/**
  * Enum representing different types of anomalies that can be detected.
  */
-enum class AnomalyType {
-    /** Heart rate too high (>150 BPM) */
-    HEART_RATE_HIGH,
-    
-    /** Heart rate too low (<40 BPM) */
-    HEART_RATE_LOW,
-    
-    /** Sudden heart rate change (>30 BPM in 5 seconds) */
-    HEART_RATE_SUDDEN_CHANGE,
-    
-    /** Step frequency too high (>180 steps/min = 3 Hz) */
-    STEP_FREQ_HIGH,
-    
-    /** Step frequency too low (<30 steps/min = 0.5 Hz) */
-    STEP_FREQ_LOW,
-    
-    /** Sudden gait change detected */
-    GAIT_SUDDEN_CHANGE,
-    
-    /** Fall detected (impact + stationary pattern) */
-    FALL_DETECTED,
-    
-    /** Motion intensity anomaly */
-    MOTION_INTENSITY_ANOMALY
+enum class AnomalyType(val displayName: String) {
+    HEART_RATE_HIGH("心率过高"),
+    HEART_RATE_LOW("心率过低"),
+    HEART_RATE_SUDDEN_CHANGE("心率突变"),
+    STEP_FREQ_HIGH("步频过高"),
+    STEP_FREQ_LOW("步频过低"),
+    GAIT_SUDDEN_CHANGE("步态突变"),
+    FALL_DETECTED("跌倒检测"),
+    MOTION_INTENSITY_ANOMALY("运动强度异常")
 }
