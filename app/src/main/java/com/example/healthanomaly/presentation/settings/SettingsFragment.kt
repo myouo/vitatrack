@@ -40,21 +40,9 @@ class SettingsFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        setupThemeSwitch()
         setupSliders()
         setupButtons()
         observeState()
-    }
-
-    /**
-     * Set up theme switch.
-     */
-    private fun setupThemeSwitch() {
-        binding.switchDarkTheme.setOnCheckedChangeListener { _, isChecked ->
-            viewModel.setDarkThemeEnabled(isChecked)
-            // Recreate activity to apply theme
-            requireActivity().recreate()
-        }
     }
     
     /**
@@ -142,8 +130,6 @@ class SettingsFragment : Fragment() {
         viewLifecycleOwner.lifecycleScope.launch {
             viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
                 viewModel.uiState.collectLatest { state ->
-                    binding.switchDarkTheme.isChecked = state.darkThemeEnabled
-
                     binding.seekbarHrHigh.progress = state.hrHighThreshold
                     binding.tvHrHighValue.text = getString(R.string.threshold_bpm, state.hrHighThreshold)
 

@@ -25,7 +25,6 @@ class PreferencesManager @Inject constructor(
         private const val KEY_FALL_DETECTION_ENABLED = "fall_detection_enabled"
         private const val KEY_COLLECTION_ENABLED = "collection_enabled"
         private const val KEY_CONNECTED_DEVICE_ADDRESS = "connected_device_address"
-        private const val KEY_DARK_THEME_ENABLED = "dark_theme_enabled"
     }
     
     private val prefs: SharedPreferences = 
@@ -91,13 +90,5 @@ class PreferencesManager @Inject constructor(
 
     fun setConnectedDeviceAddress(address: String?) {
         prefs.edit().putString(KEY_CONNECTED_DEVICE_ADDRESS, address).apply()
-    }
-
-    // Dark theme
-    fun isDarkThemeEnabled(): Boolean =
-        prefs.getBoolean(KEY_DARK_THEME_ENABLED, false)
-
-    fun setDarkThemeEnabled(enabled: Boolean) {
-        prefs.edit().putBoolean(KEY_DARK_THEME_ENABLED, enabled).apply()
     }
 }

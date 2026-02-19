@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <!-- Light Theme (Default) -->
-    <style name="Theme.HealthAnomaly.Light" parent="Theme.Material3.Light.NoActionBar">
+    <!-- Light Theme (Only Theme) -->
+    <style name="Theme.HealthAnomaly" parent="Theme.Material3.Light.NoActionBar">
         <item name="colorPrimary">@color/primary_light_theme</item>
         <item name="colorPrimaryDark">@color/primary_dark_light</item>
         <item name="colorAccent">@color/accent_light</item>
@@ -26,32 +26,4 @@
         <item name="textTertiaryColor">@color/text_tertiary_light</item>
         <item name="dividerColor">@color/divider_light</item>
     </style>
-
-    <!-- Dark Theme -->
-    <style name="Theme.HealthAnomaly.Dark" parent="Theme.Material3.Dark.NoActionBar">
-        <item name="colorPrimary">@color/primary</item>
-        <item name="colorPrimaryDark">@color/primary_dark</item>
-        <item name="colorAccent">@color/accent</item>
-        <item name="android:statusBarColor">@color/background_primary</item>
-        <item name="android:navigationBarColor">@color/background_secondary</item>
-        <item name="android:windowBackground">@color/background_primary</item>
-        <item name="colorSurface">@color/surface</item>
-        <item name="colorOnSurface">@color/text_primary</item>
-        <item name="colorOnPrimary">@color/text_primary</item>
-        <item name="android:textColorPrimary">@color/text_primary</item>
-        <item name="android:textColorSecondary">@color/text_secondary</item>
-
-        <!-- Custom attributes for theme colors -->
-        <item name="backgroundColor">@color/background_primary</item>
-        <item name="backgroundSecondaryColor">@color/background_secondary</item>
-        <item name="cardBackgroundColor">@color/background_card</item>
-        <item name="cardElevatedColor">@color/background_card_elevated</item>
-        <item name="textPrimaryColor">@color/text_primary</item>
-        <item name="textSecondaryColor">@color/text_secondary</item>
-        <item name="textTertiaryColor">@color/text_tertiary</item>
-        <item name="dividerColor">@color/divider</item>
-    </style>
-
-    <!-- Default Theme (Light) -->
-    <style name="Theme.HealthAnomaly" parent="Theme.HealthAnomaly.Light" />
 </resources>

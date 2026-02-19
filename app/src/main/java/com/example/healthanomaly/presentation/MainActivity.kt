@@ -9,14 +9,12 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import com.example.healthanomaly.R
-import com.example.healthanomaly.core.PreferencesManager
 import com.example.healthanomaly.databinding.ActivityMainBinding
 import com.example.healthanomaly.presentation.dashboard.DashboardFragment
 import com.example.healthanomaly.presentation.chart.ChartFragment
 import com.example.healthanomaly.presentation.events.EventsFragment
 import com.example.healthanomaly.presentation.settings.SettingsFragment
 import dagger.hilt.android.AndroidEntryPoint
-import javax.inject.Inject
 
 /**
  * Main activity with bottom navigation for the four main screens.
@@ -25,9 +23,6 @@ import javax.inject.Inject
 class MainActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivityMainBinding
-
-    @Inject
-    lateinit var preferencesManager: PreferencesManager
 
     // Permission request launcher
     private val permissionLauncher = registerForActivityResult(
@@ -41,9 +36,6 @@ class MainActivity : AppCompatActivity() {
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
-        // Apply theme before super.onCreate()
-        applyTheme()
-
         super.onCreate(savedInstanceState)
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
@@ -54,21 +46,6 @@ class MainActivity : AppCompatActivity() {
         // Show dashboard by default
         if (savedInstanceState == null) {
             showFragment(DashboardFragment())
-        }
-    }
-
-    /**
-     * Apply the saved theme preference.
-     */
-    private fun applyTheme() {
-        try {
-            val isDarkTheme = preferencesManager.isDarkThemeEnabled()
-            setTheme(
-                if (isDarkTheme) R.style.Theme_HealthAnomaly_Dark
-                else R.style.Theme_HealthAnomaly_Light
-            )
-        } catch (e: Exception) {
-            setTheme(R.style.Theme_HealthAnomaly_Light)
         }
     }
     
