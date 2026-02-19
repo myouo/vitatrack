@@ -4,6 +4,7 @@
 
     <!-- Primary Theme Colors - Teal/Cyan Medical Tech -->
     <color name="primary_light_theme">#00ACC1</color>
+    <color name="primary_light">#00ACC1</color>
     <color name="primary_dark_light">#00838F</color>
     <color name="primary_variant_light">#26C6DA</color>
     <color name="accent_light">#FF5252</color>

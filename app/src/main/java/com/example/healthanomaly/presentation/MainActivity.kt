@@ -61,11 +61,15 @@ class MainActivity : AppCompatActivity() {
      * Apply the saved theme preference.
      */
     private fun applyTheme() {
-        val isDarkTheme = preferencesManager.isDarkThemeEnabled()
-        setTheme(
-            if (isDarkTheme) R.style.Theme_HealthAnomaly_Dark
-            else R.style.Theme_HealthAnomaly_Light
-        )
+        try {
+            val isDarkTheme = preferencesManager.isDarkThemeEnabled()
+            setTheme(
+                if (isDarkTheme) R.style.Theme_HealthAnomaly_Dark
+                else R.style.Theme_HealthAnomaly_Light
+            )
+        } catch (e: Exception) {
+            setTheme(R.style.Theme_HealthAnomaly_Light)
+        }
     }
     
     /**
