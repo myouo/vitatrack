@@ -75,8 +75,8 @@ dependencies {
     ksp("androidx.room:room-compiler:2.6.1")
 
     // Hilt Dependency Injection
-    implementation("com.google.dagger:hilt-android:2.48.1")
-    ksp("com.google.dagger:hilt-android-compiler:2.48.1")
+    implementation("com.google.dagger:hilt-android:2.50")
+    ksp("com.google.dagger:hilt-android-compiler:2.50")
 
     // BLE
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-guava:1.7.3")
