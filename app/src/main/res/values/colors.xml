@@ -1,72 +1,101 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <!-- Primary Theme Colors - Teal/Cyan Medical Tech -->
+    <!-- Primary Theme Colors -->
+    <color name="primary">#00BCD4</color>
+    <color name="primary_dark">#0097A7</color>
+    <color name="primary_light">#4DD0E1</color>
     <color name="primary_light_theme">#00ACC1</color>
+    <color name="accent">#FF6B6B</color>
+
+    <!-- Background Colors - Dark Theme -->
+    <color name="background_primary">#0A0E27</color>
+    <color name="background_secondary">#151B3D</color>
+    <color name="background_card">#1E2749</color>
+    <color name="background_card_elevated">#252D54</color>
+
+    <!-- Surface Colors -->
+    <color name="surface">#1E2749</color>
+    <color name="surface_variant">#2A3358</color>
+
+    <!-- Text Colors -->
+    <color name="text_primary">#FFFFFF</color>
+    <color name="text_secondary">#B0B8D4</color>
+    <color name="text_tertiary">#7A82A0</color>
+
+    <!-- Accent & Gradient Colors -->
+    <color name="gradient_start">#00D4FF</color>
+    <color name="gradient_mid">#00BCD4</color>
+    <color name="gradient_end">#0097A7</color>
+    <color name="gradient_warm_start">#FF6B6B</color>
+    <color name="gradient_warm_end">#FF8E53</color>
+
+    <!-- Status Colors -->
+    <color name="status_active">#4ECDC4</color>
+    <color name="status_inactive">#7A82A0</color>
+    <color name="status_warning">#FFB84D</color>
+    <color name="status_error">#FF6B6B</color>
+    <color name="status_success">#51CF66</color>
+
+    <!-- Severity Colors with Glow -->
+    <color name="severity_high">#FF4757</color>
+    <color name="severity_high_glow">#FF6B7B</color>
+    <color name="severity_medium">#FFA502</color>
+    <color name="severity_medium_glow">#FFB732</color>
+    <color name="severity_low">#26DE81</color>
+    <color name="severity_low_glow">#3EE89B</color>
+
+    <!-- Chart Colors -->
+    <color name="chart_hr">#FF6B6B</color>
+    <color name="chart_hr_fill">#33FF6B6B</color>
+    <color name="chart_accel">#4ECDC4</color>
+    <color name="chart_accel_fill">#334ECDC4</color>
+    <color name="chart_step">#51CF66</color>
+    <color name="chart_step_fill">#3351CF66</color>
+
+    <!-- Utility Colors -->
+    <color name="white">#FFFFFF</color>
+    <color name="black">#000000</color>
+    <color name="transparent">#00000000</color>
+    <color name="overlay">#80000000</color>
+
+    <!-- Divider -->
+    <color name="divider">#2A3358</color>
+
+    <!-- Light Theme Colors -->
     <color name="primary_dark_light">#00838F</color>
     <color name="primary_variant_light">#26C6DA</color>
     <color name="accent_light">#FF5252</color>
-
-    <!-- Background Colors - Light Theme -->
     <color name="background_primary_light">#F5F7FA</color>
     <color name="background_secondary_light">#FFFFFF</color>
     <color name="background_card_light">#FFFFFF</color>
     <color name="background_card_elevated_light">#FFFFFF</color>
-
-    <!-- Surface Colors - Light -->
     <color name="surface_light">#FFFFFF</color>
     <color name="surface_variant_light">#F5F7FA</color>
-
-    <!-- Text Colors - Light -->
     <color name="text_primary_light">#1A1A1A</color>
     <color name="text_secondary_light">#5F6368</color>
     <color name="text_tertiary_light">#9AA0A6</color>
-
-    <!-- Gradient Colors - Light -->
     <color name="gradient_start_light">#00BCD4</color>
     <color name="gradient_mid_light">#00ACC1</color>
     <color name="gradient_end_light">#0097A7</color>
     <color name="gradient_warm_start_light">#FF5252</color>
     <color name="gradient_warm_end_light">#FF6E40</color>
-
-    <!-- Status Colors - Light -->
     <color name="status_active_light">#00BCD4</color>
     <color name="status_inactive_light">#9AA0A6</color>
     <color name="status_warning_light">#FF9800</color>
     <color name="status_error_light">#F44336</color>
     <color name="status_success_light">#4CAF50</color>
-
-    <!-- Severity Colors - Light -->
     <color name="severity_high_light">#F44336</color>
     <color name="severity_high_glow_light">#FF5252</color>
     <color name="severity_medium_light">#FF9800</color>
     <color name="severity_medium_glow_light">#FFB74D</color>
     <color name="severity_low_light">#4CAF50</color>
     <color name="severity_low_glow_light">#66BB6A</color>
-
-    <!-- Chart Colors - Light -->
-    <color name="chart_hr">#F44336</color>
     <color name="chart_hr_light">#F44336</color>
     <color name="chart_hr_fill_light">#33F44336</color>
-    <color name="chart_accel">#00BCD4</color>
     <color name="chart_accel_light">#00BCD4</color>
     <color name="chart_accel_fill_light">#3300BCD4</color>
-    <color name="chart_step">#4CAF50</color>
     <color name="chart_step_light">#4CAF50</color>
     <color name="chart_step_fill_light">#334CAF50</color>
-
-    <!-- Divider - Light -->
     <color name="divider_light">#E0E0E0</color>
-
-    <!-- Overlay - Light -->
     <color name="overlay_light">#40000000</color>
-
-    <!-- Utility Colors -->
-    <color name="white">#FFFFFF</color>
-    <color name="black">#000000</color>
-    <color name="transparent">#00000000</color>
-
-    <!-- Status Colors (for compatibility) -->
-    <color name="status_success">#4CAF50</color>
-    <color name="primary_light">#4DD0E1</color>
 </resources>
-
