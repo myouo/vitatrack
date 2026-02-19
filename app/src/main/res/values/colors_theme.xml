@@ -8,6 +8,6 @@
     <color name="theme_text_primary">@color/text_primary_light</color>
     <color name="theme_text_secondary">@color/text_secondary_light</color>
     <color name="theme_text_tertiary">@color/text_tertiary_light</color>
-    <color name="theme_primary">@color/primary_light</color>
+    <color name="theme_primary">@color/primary_light_theme</color>
     <color name="theme_divider">@color/divider_light</color>
 </resources>
