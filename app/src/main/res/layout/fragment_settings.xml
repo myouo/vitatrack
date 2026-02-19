@@ -5,7 +5,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:fillViewport="true"
-    android:background="@color/background_primary">
+    android:background="?attr/backgroundColor">
 
     <LinearLayout
         android:layout_width="match_parent"
@@ -21,7 +21,7 @@
             android:text="设置"
             android:textSize="28sp"
             android:textStyle="bold"
-            android:textColor="@color/text_primary"
+            android:textColor="?attr/textPrimaryColor"
             android:layout_marginBottom="24dp" />
 
         <!-- Theme Settings -->
@@ -31,7 +31,7 @@
             android:layout_marginBottom="16dp"
             app:cardCornerRadius="20dp"
             app:cardElevation="6dp"
-            app:cardBackgroundColor="@color/background_card">
+            app:cardBackgroundColor="?attr/cardBackgroundColor">
 
             <LinearLayout
                 android:layout_width="match_parent"
@@ -52,14 +52,14 @@
                         android:text="深色主题"
                         android:textSize="16sp"
                         android:textStyle="bold"
-                        android:textColor="@color/text_primary" />
+                        android:textColor="?attr/textPrimaryColor" />
 
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="切换到深色模式以减少眼睛疲劳"
                         android:textSize="13sp"
-                        android:textColor="@color/text_secondary"
+                        android:textColor="?attr/textSecondaryColor"
                         android:layout_marginTop="4dp" />
                 </LinearLayout>
 
@@ -69,7 +69,7 @@
                     android:layout_height="wrap_content"
                     android:checked="false"
                     app:thumbTint="@color/white"
-                    app:trackTint="@color/primary" />
+                    app:trackTint="?attr/colorPrimary" />
 
             </LinearLayout>
         </com.google.android.material.card.MaterialCardView>
@@ -81,7 +81,7 @@
             android:layout_marginBottom="16dp"
             app:cardCornerRadius="20dp"
             app:cardElevation="6dp"
-            app:cardBackgroundColor="@color/background_card"
+            app:cardBackgroundColor="?attr/cardBackgroundColor"
             app:strokeWidth="1dp"
             app:strokeColor="@color/chart_hr">
 
@@ -97,7 +97,7 @@
                     android:text="@string/hr_thresholds"
                     android:textSize="18sp"
                     android:textStyle="bold"
-                    android:textColor="@color/text_primary"
+                    android:textColor="?attr/textPrimaryColor"
                     android:layout_marginBottom="16dp" />
 
                 <!-- HR High -->
@@ -106,7 +106,7 @@
                     android:layout_height="wrap_content"
                     android:text="@string/hr_high_threshold"
                     android:textSize="13sp"
-                    android:textColor="@color/text_secondary"
+                    android:textColor="?attr/textSecondaryColor"
                     android:textAllCaps="true"
                     android:letterSpacing="0.1" />
 
@@ -137,7 +137,7 @@
                     android:layout_marginTop="20dp"
                     android:text="@string/hr_low_threshold"
                     android:textSize="13sp"
-                    android:textColor="@color/text_secondary"
+                    android:textColor="?attr/textSecondaryColor"
                     android:textAllCaps="true"
                     android:letterSpacing="0.1" />
 
@@ -171,7 +171,7 @@
             android:layout_marginBottom="16dp"
             app:cardCornerRadius="20dp"
             app:cardElevation="6dp"
-            app:cardBackgroundColor="@color/background_card"
+            app:cardBackgroundColor="?attr/cardBackgroundColor"
             app:strokeWidth="1dp"
             app:strokeColor="@color/chart_step">
 
@@ -187,7 +187,7 @@
                     android:text="@string/step_freq_thresholds"
                     android:textSize="18sp"
                     android:textStyle="bold"
-                    android:textColor="@color/text_primary"
+                    android:textColor="?attr/textPrimaryColor"
                     android:layout_marginBottom="16dp" />
 
                 <!-- Step Freq High -->
@@ -196,7 +196,7 @@
                     android:layout_height="wrap_content"
                     android:text="@string/step_freq_high_threshold"
                     android:textSize="13sp"
-                    android:textColor="@color/text_secondary"
+                    android:textColor="?attr/textSecondaryColor"
                     android:textAllCaps="true"
                     android:letterSpacing="0.1" />
 
@@ -227,7 +227,7 @@
                     android:layout_marginTop="20dp"
                     android:text="@string/step_freq_low_threshold"
                     android:textSize="13sp"
-                    android:textColor="@color/text_secondary"
+                    android:textColor="?attr/textSecondaryColor"
                     android:textAllCaps="true"
                     android:letterSpacing="0.1" />
 
@@ -261,7 +261,7 @@
             android:layout_marginBottom="16dp"
             app:cardCornerRadius="20dp"
             app:cardElevation="6dp"
-            app:cardBackgroundColor="@color/background_card">
+            app:cardBackgroundColor="?attr/cardBackgroundColor">
 
             <LinearLayout
                 android:layout_width="match_parent"
@@ -282,14 +282,14 @@
                         android:text="@string/fall_detection"
                         android:textSize="16sp"
                         android:textStyle="bold"
-                        android:textColor="@color/text_primary" />
+                        android:textColor="?attr/textPrimaryColor" />
 
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="检测跌倒并发送警报"
                         android:textSize="13sp"
-                        android:textColor="@color/text_secondary"
+                        android:textColor="?attr/textSecondaryColor"
                         android:layout_marginTop="4dp" />
                 </LinearLayout>
 
@@ -310,7 +310,7 @@
             android:layout_height="wrap_content"
             app:cardCornerRadius="20dp"
             app:cardElevation="6dp"
-            app:cardBackgroundColor="@color/background_card">
+            app:cardBackgroundColor="?attr/cardBackgroundColor">
 
             <LinearLayout
                 android:layout_width="match_parent"
@@ -324,7 +324,7 @@
                     android:text="@string/data_export"
                     android:textSize="18sp"
                     android:textStyle="bold"
-                    android:textColor="@color/text_primary"
+                    android:textColor="?attr/textPrimaryColor"
                     android:layout_marginBottom="8dp" />
 
                 <TextView
@@ -332,7 +332,7 @@
                     android:layout_height="wrap_content"
                     android:text="导出所有健康数据为 CSV 文件"
                     android:textSize="13sp"
-                    android:textColor="@color/text_secondary"
+                    android:textColor="?attr/textSecondaryColor"
                     android:layout_marginBottom="16dp" />
 
                 <com.google.android.material.button.MaterialButton

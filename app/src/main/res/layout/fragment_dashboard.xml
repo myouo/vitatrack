@@ -5,7 +5,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:fillViewport="true"
-    android:background="@color/background_primary">
+    android:background="?attr/backgroundColor">
 
     <LinearLayout
         android:layout_width="match_parent"
@@ -22,7 +22,7 @@
             android:text="VitaTrack"
             android:textSize="32sp"
             android:textStyle="bold"
-            android:textColor="@color/text_primary"
+            android:textColor="?attr/textPrimaryColor"
             android:fontFamily="sans-serif-medium"
             android:layout_marginBottom="4dp" />
 
@@ -31,7 +31,7 @@
             android:layout_height="wrap_content"
             android:text="实时健康监测"
             android:textSize="14sp"
-            android:textColor="@color/text_secondary"
+            android:textColor="?attr/textSecondaryColor"
             android:layout_marginBottom="24dp" />
 
         <!-- Collection Control Card - Elevated Glass Style -->
@@ -41,7 +41,7 @@
             android:layout_marginBottom="20dp"
             app:cardCornerRadius="24dp"
             app:cardElevation="8dp"
-            app:cardBackgroundColor="@color/background_card_elevated"
+            app:cardBackgroundColor="?attr/cardElevatedColor"
             app:strokeWidth="1dp"
             app:strokeColor="@color/primary_light">
 
@@ -72,7 +72,7 @@
                         android:text="@string/collection_control"
                         android:textSize="20sp"
                         android:textStyle="bold"
-                        android:textColor="@color/text_primary" />
+                        android:textColor="?attr/textPrimaryColor" />
                 </LinearLayout>
 
                 <TextView
@@ -82,7 +82,7 @@
                     android:layout_marginBottom="20dp"
                     android:text="@string/status_stopped"
                     android:textSize="15sp"
-                    android:textColor="@color/text_secondary" />
+                    android:textColor="?attr/textSecondaryColor" />
 
                 <com.google.android.material.button.MaterialButton
                     android:id="@+id/btn_start_stop"
@@ -91,7 +91,7 @@
                     android:text="@string/start_collection"
                     android:textSize="16sp"
                     android:textStyle="bold"
-                    android:textColor="@color/text_primary"
+                    android:textColor="@color/white"
                     android:background="@drawable/bg_button_primary"
                     app:cornerRadius="16dp"
                     app:elevation="0dp"
@@ -108,7 +108,7 @@
             android:layout_marginBottom="20dp"
             app:cardCornerRadius="24dp"
             app:cardElevation="8dp"
-            app:cardBackgroundColor="@color/background_card_elevated"
+            app:cardBackgroundColor="?attr/cardElevatedColor"
             app:strokeWidth="1dp"
             app:strokeColor="@color/primary_light">
 
@@ -124,7 +124,7 @@
                     android:text="@string/realtime_data"
                     android:textSize="20sp"
                     android:textStyle="bold"
-                    android:textColor="@color/text_primary"
+                    android:textColor="?attr/textPrimaryColor"
                     android:layout_marginBottom="20dp" />
 
                 <!-- Heart Rate - Large Display -->
@@ -141,7 +141,7 @@
                         android:layout_height="wrap_content"
                         android:text="@string/heart_rate_label"
                         android:textSize="13sp"
-                        android:textColor="@color/text_secondary"
+                        android:textColor="?attr/textSecondaryColor"
                         android:textAllCaps="true"
                         android:letterSpacing="0.1" />
 
@@ -167,7 +167,7 @@
                             android:layout_height="wrap_content"
                             android:text=" BPM"
                             android:textSize="18sp"
-                            android:textColor="@color/text_secondary"
+                            android:textColor="?attr/textSecondaryColor"
                             android:layout_marginStart="8dp"
                             android:layout_marginBottom="8dp"
                             android:layout_gravity="bottom" />
@@ -196,7 +196,7 @@
                             android:layout_height="wrap_content"
                             android:text="@string/step_freq_label"
                             android:textSize="11sp"
-                            android:textColor="@color/text_secondary"
+                            android:textColor="?attr/textSecondaryColor"
                             android:textAllCaps="true"
                             android:letterSpacing="0.1" />
 
@@ -215,7 +215,7 @@
                             android:layout_height="wrap_content"
                             android:text="步/分"
                             android:textSize="11sp"
-                            android:textColor="@color/text_tertiary"
+                            android:textColor="?attr/textTertiaryColor"
                             android:layout_marginTop="4dp" />
                     </LinearLayout>
 
@@ -234,7 +234,7 @@
                             android:layout_height="wrap_content"
                             android:text="@string/motion_label"
                             android:textSize="11sp"
-                            android:textColor="@color/text_secondary"
+                            android:textColor="?attr/textSecondaryColor"
                             android:textAllCaps="true"
                             android:letterSpacing="0.1" />
 
@@ -253,7 +253,7 @@
                             android:layout_height="wrap_content"
                             android:text="运动状态"
                             android:textSize="11sp"
-                            android:textColor="@color/text_tertiary"
+                            android:textColor="?attr/textTertiaryColor"
                             android:layout_marginTop="4dp" />
                     </LinearLayout>
                 </LinearLayout>
@@ -267,7 +267,7 @@
             android:layout_height="wrap_content"
             app:cardCornerRadius="24dp"
             app:cardElevation="8dp"
-            app:cardBackgroundColor="@color/background_card_elevated"
+            app:cardBackgroundColor="?attr/cardElevatedColor"
             app:strokeWidth="1dp"
             app:strokeColor="@color/primary_light">
 
@@ -291,7 +291,7 @@
                         android:text="@string/ble_connection"
                         android:textSize="20sp"
                         android:textStyle="bold"
-                        android:textColor="@color/text_primary" />
+                        android:textColor="?attr/textPrimaryColor" />
 
                     <View
                         android:id="@+id/ble_status_indicator"
@@ -307,7 +307,7 @@
                     android:layout_marginBottom="20dp"
                     android:text="@string/ble_disconnected"
                     android:textSize="15sp"
-                    android:textColor="@color/text_secondary" />
+                    android:textColor="?attr/textSecondaryColor" />
 
                 <com.google.android.material.button.MaterialButton
                     android:id="@+id/btn_ble_connect"
@@ -316,9 +316,9 @@
                     android:text="@string/ble_scan"
                     android:textSize="16sp"
                     android:textStyle="bold"
-                    android:textColor="@color/primary"
+                    android:textColor="?attr/colorPrimary"
                     android:background="@android:color/transparent"
-                    app:strokeColor="@color/primary"
+                    app:strokeColor="?attr/colorPrimary"
                     app:strokeWidth="2dp"
                     app:cornerRadius="16dp"
                     style="@style/Widget.Material3.Button.OutlinedButton" />

@@ -2,7 +2,7 @@
 <resources>
     <!-- Light Theme (Default) -->
     <style name="Theme.HealthAnomaly.Light" parent="Theme.Material3.Light.NoActionBar">
-        <item name="colorPrimary">@color/primary_light</item>
+        <item name="colorPrimary">@color/primary_light_theme</item>
         <item name="colorPrimaryDark">@color/primary_dark_light</item>
         <item name="colorAccent">@color/accent_light</item>
         <item name="android:statusBarColor">@color/background_primary_light</item>
@@ -15,6 +15,16 @@
         <item name="android:textColorSecondary">@color/text_secondary_light</item>
         <item name="android:windowLightStatusBar">true</item>
         <item name="android:windowLightNavigationBar">true</item>
+
+        <!-- Custom attributes for theme colors -->
+        <item name="backgroundColor">@color/background_primary_light</item>
+        <item name="backgroundSecondaryColor">@color/background_secondary_light</item>
+        <item name="cardBackgroundColor">@color/background_card_light</item>
+        <item name="cardElevatedColor">@color/background_card_elevated_light</item>
+        <item name="textPrimaryColor">@color/text_primary_light</item>
+        <item name="textSecondaryColor">@color/text_secondary_light</item>
+        <item name="textTertiaryColor">@color/text_tertiary_light</item>
+        <item name="dividerColor">@color/divider_light</item>
     </style>
 
     <!-- Dark Theme -->
@@ -30,6 +40,16 @@
         <item name="colorOnPrimary">@color/text_primary</item>
         <item name="android:textColorPrimary">@color/text_primary</item>
         <item name="android:textColorSecondary">@color/text_secondary</item>
+
+        <!-- Custom attributes for theme colors -->
+        <item name="backgroundColor">@color/background_primary</item>
+        <item name="backgroundSecondaryColor">@color/background_secondary</item>
+        <item name="cardBackgroundColor">@color/background_card</item>
+        <item name="cardElevatedColor">@color/background_card_elevated</item>
+        <item name="textPrimaryColor">@color/text_primary</item>
+        <item name="textSecondaryColor">@color/text_secondary</item>
+        <item name="textTertiaryColor">@color/text_tertiary</item>
+        <item name="dividerColor">@color/divider</item>
     </style>
 
     <!-- Default Theme (Light) -->
