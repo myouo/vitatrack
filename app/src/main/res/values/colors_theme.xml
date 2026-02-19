@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Theme-aware colors that reference the appropriate theme colors -->
+    <color name="theme_background_primary">@color/background_primary_light</color>
+    <color name="theme_background_secondary">@color/background_secondary_light</color>
+    <color name="theme_background_card">@color/background_card_light</color>
+    <color name="theme_background_card_elevated">@color/background_card_elevated_light</color>
+    <color name="theme_text_primary">@color/text_primary_light</color>
+    <color name="theme_text_secondary">@color/text_secondary_light</color>
+    <color name="theme_text_tertiary">@color/text_tertiary_light</color>
+    <color name="theme_primary">@color/primary_light</color>
+    <color name="theme_divider">@color/divider_light</color>
+</resources>

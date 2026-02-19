@@ -15,7 +15,7 @@ class PreferencesManager @Inject constructor(
 ) {
     companion object {
         private const val PREFS_NAME = "health_anomaly_prefs"
-        
+
         // Keys
         private const val KEY_HR_HIGH_THRESHOLD = "hr_high_threshold"
         private const val KEY_HR_LOW_THRESHOLD = "hr_low_threshold"
@@ -25,6 +25,7 @@ class PreferencesManager @Inject constructor(
         private const val KEY_FALL_DETECTION_ENABLED = "fall_detection_enabled"
         private const val KEY_COLLECTION_ENABLED = "collection_enabled"
         private const val KEY_CONNECTED_DEVICE_ADDRESS = "connected_device_address"
+        private const val KEY_DARK_THEME_ENABLED = "dark_theme_enabled"
     }
     
     private val prefs: SharedPreferences = 
@@ -85,10 +86,18 @@ class PreferencesManager @Inject constructor(
     }
     
     // Connected device
-    fun getConnectedDeviceAddress(): String? = 
+    fun getConnectedDeviceAddress(): String? =
         prefs.getString(KEY_CONNECTED_DEVICE_ADDRESS, null)
-    
+
     fun setConnectedDeviceAddress(address: String?) {
         prefs.edit().putString(KEY_CONNECTED_DEVICE_ADDRESS, address).apply()
+    }
+
+    // Dark theme
+    fun isDarkThemeEnabled(): Boolean =
+        prefs.getBoolean(KEY_DARK_THEME_ENABLED, false)
+
+    fun setDarkThemeEnabled(enabled: Boolean) {
+        prefs.edit().putBoolean(KEY_DARK_THEME_ENABLED, enabled).apply()
     }
 }

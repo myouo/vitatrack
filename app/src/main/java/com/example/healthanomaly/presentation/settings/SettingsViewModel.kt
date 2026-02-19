@@ -34,6 +34,7 @@ class SettingsViewModel @Inject constructor(
      */
     private fun loadSettings() {
         _uiState.value = SettingsUiState(
+            darkThemeEnabled = preferencesManager.isDarkThemeEnabled(),
             hrHighThreshold = preferencesManager.getHrHighThreshold(),
             hrLowThreshold = preferencesManager.getHrLowThreshold(),
             stepFreqHighThreshold = preferencesManager.getStepFreqHighThreshold(),
@@ -41,6 +42,14 @@ class SettingsViewModel @Inject constructor(
             windowSizeMs = preferencesManager.getWindowSizeMs(),
             fallDetectionEnabled = preferencesManager.isFallDetectionEnabled()
         )
+    }
+
+    /**
+     * Toggle dark theme.
+     */
+    fun setDarkThemeEnabled(enabled: Boolean) {
+        preferencesManager.setDarkThemeEnabled(enabled)
+        _uiState.value = _uiState.value.copy(darkThemeEnabled = enabled)
     }
     
     /**
@@ -119,6 +128,7 @@ class SettingsViewModel @Inject constructor(
  * UI State for Settings.
  */
 data class SettingsUiState(
+    val darkThemeEnabled: Boolean = false,
     val hrHighThreshold: Int = Constants.HR_HIGH_THRESHOLD,
     val hrLowThreshold: Int = Constants.HR_LOW_THRESHOLD,
     val stepFreqHighThreshold: Float = Constants.STEP_FREQ_HIGH_THRESHOLD,

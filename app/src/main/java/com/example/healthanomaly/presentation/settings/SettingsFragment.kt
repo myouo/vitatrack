@@ -39,10 +39,22 @@ class SettingsFragment : Fragment() {
     
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        
+
+        setupThemeSwitch()
         setupSliders()
         setupButtons()
         observeState()
+    }
+
+    /**
+     * Set up theme switch.
+     */
+    private fun setupThemeSwitch() {
+        binding.switchDarkTheme.setOnCheckedChangeListener { _, isChecked ->
+            viewModel.setDarkThemeEnabled(isChecked)
+            // Recreate activity to apply theme
+            requireActivity().recreate()
+        }
     }
     
     /**
@@ -130,18 +142,20 @@ class SettingsFragment : Fragment() {
         viewLifecycleOwner.lifecycleScope.launch {
             viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
                 viewModel.uiState.collectLatest { state ->
+                    binding.switchDarkTheme.isChecked = state.darkThemeEnabled
+
                     binding.seekbarHrHigh.progress = state.hrHighThreshold
                     binding.tvHrHighValue.text = getString(R.string.threshold_bpm, state.hrHighThreshold)
-                    
+
                     binding.seekbarHrLow.progress = state.hrLowThreshold - 20
                     binding.tvHrLowValue.text = getString(R.string.threshold_bpm, state.hrLowThreshold)
-                    
+
                     binding.seekbarStepFreqHigh.progress = (state.stepFreqHighThreshold * 10).toInt()
                     binding.tvStepFreqHighValue.text = getString(R.string.threshold_hz, state.stepFreqHighThreshold)
-                    
+
                     binding.seekbarStepFreqLow.progress = (state.stepFreqLowThreshold * 10).toInt()
                     binding.tvStepFreqLowValue.text = getString(R.string.threshold_hz, state.stepFreqLowThreshold)
-                    
+
                     binding.switchFallDetection.isChecked = state.fallDetectionEnabled
                 }
             }

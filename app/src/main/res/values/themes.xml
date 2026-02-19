@@ -1,6 +1,24 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <style name="Theme.HealthAnomaly" parent="Theme.Material3.Dark.NoActionBar">
+    <!-- Light Theme (Default) -->
+    <style name="Theme.HealthAnomaly.Light" parent="Theme.Material3.Light.NoActionBar">
+        <item name="colorPrimary">@color/primary_light</item>
+        <item name="colorPrimaryDark">@color/primary_dark_light</item>
+        <item name="colorAccent">@color/accent_light</item>
+        <item name="android:statusBarColor">@color/background_primary_light</item>
+        <item name="android:navigationBarColor">@color/background_secondary_light</item>
+        <item name="android:windowBackground">@color/background_primary_light</item>
+        <item name="colorSurface">@color/surface_light</item>
+        <item name="colorOnSurface">@color/text_primary_light</item>
+        <item name="colorOnPrimary">@color/white</item>
+        <item name="android:textColorPrimary">@color/text_primary_light</item>
+        <item name="android:textColorSecondary">@color/text_secondary_light</item>
+        <item name="android:windowLightStatusBar">true</item>
+        <item name="android:windowLightNavigationBar">true</item>
+    </style>
+
+    <!-- Dark Theme -->
+    <style name="Theme.HealthAnomaly.Dark" parent="Theme.Material3.Dark.NoActionBar">
         <item name="colorPrimary">@color/primary</item>
         <item name="colorPrimaryDark">@color/primary_dark</item>
         <item name="colorAccent">@color/accent</item>
@@ -13,4 +31,7 @@
         <item name="android:textColorPrimary">@color/text_primary</item>
         <item name="android:textColorSecondary">@color/text_secondary</item>
     </style>
+
+    <!-- Default Theme (Light) -->
+    <style name="Theme.HealthAnomaly" parent="Theme.HealthAnomaly.Light" />
 </resources>
