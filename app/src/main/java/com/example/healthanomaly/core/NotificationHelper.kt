@@ -42,10 +42,10 @@ class NotificationHelper @Inject constructor(
             // Alert channel (high importance)
             val alertChannel = NotificationChannel(
                 CHANNEL_ID_ALERTS,
-                "Health Alerts",
+                context.getString(R.string.notification_channel_alerts),
                 NotificationManager.IMPORTANCE_HIGH
             ).apply {
-                description = "Notifications for detected health anomalies"
+                description = context.getString(R.string.notification_channel_alerts)
                 enableVibration(true)
                 enableLights(true)
             }
@@ -53,10 +53,10 @@ class NotificationHelper @Inject constructor(
             // Foreground service channel
             val foregroundChannel = NotificationChannel(
                 CHANNEL_ID_FOREGROUND,
-                "Background Monitoring",
+                context.getString(R.string.notification_channel_foreground),
                 NotificationManager.IMPORTANCE_LOW
             ).apply {
-                description = "Notifications for background data collection"
+                description = context.getString(R.string.notification_channel_foreground)
             }
             
             notificationManager.createNotificationChannel(alertChannel)
@@ -82,7 +82,7 @@ class NotificationHelper @Inject constructor(
         
         val notification = NotificationCompat.Builder(context, CHANNEL_ID_ALERTS)
             .setSmallIcon(R.drawable.ic_notification)
-            .setContentTitle("Health Alert: ${formatAnomalyType(event.type)}")
+            .setContentTitle("${context.getString(R.string.notification_channel_alerts)}: ${formatAnomalyType(event.type)}")
             .setContentText(event.details)
             .setPriority(NotificationCompat.PRIORITY_HIGH)
             .setCategory(NotificationCompat.CATEGORY_ALARM)
@@ -131,7 +131,7 @@ class NotificationHelper @Inject constructor(
             .setPriority(NotificationCompat.PRIORITY_LOW)
             .setOngoing(true)
             .setContentIntent(pendingIntent)
-            .addAction(R.drawable.ic_stop, "Stop", stopPendingIntent)
+            .addAction(R.drawable.ic_stop, context.getString(R.string.stop_service), stopPendingIntent)
             .build()
         
         try {

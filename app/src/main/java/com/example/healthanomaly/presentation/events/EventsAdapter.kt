@@ -43,7 +43,7 @@ class EventsAdapter(
             binding.tvTimestamp.text = dateFormat.format(Date(event.timestampMs))
             binding.tvType.text = formatType(event.type)
             binding.tvDetails.text = event.details
-            binding.tvSeverity.text = "Severity: ${event.severity}/10"
+            binding.tvSeverity.text = "严重程度: ${event.severity}/10"
             
             // Set severity color
             val severityColor = when {
@@ -69,14 +69,14 @@ class EventsAdapter(
         
         private fun formatType(type: AnomalyType): String {
             return when (type) {
-                AnomalyType.HEART_RATE_HIGH -> "High Heart Rate"
-                AnomalyType.HEART_RATE_LOW -> "Low Heart Rate"
-                AnomalyType.HEART_RATE_SUDDEN_CHANGE -> "HR Change"
-                AnomalyType.STEP_FREQ_HIGH -> "High Step Freq"
-                AnomalyType.STEP_FREQ_LOW -> "Low Step Freq"
-                AnomalyType.GAIT_SUDDEN_CHANGE -> "Gait Change"
-                AnomalyType.FALL_DETECTED -> "FALL!"
-                AnomalyType.MOTION_INTENSITY_ANOMALY -> "Motion Alert"
+                AnomalyType.HEART_RATE_HIGH -> binding.root.context.getString(R.string.anomaly_hr_high)
+                AnomalyType.HEART_RATE_LOW -> binding.root.context.getString(R.string.anomaly_hr_low)
+                AnomalyType.HEART_RATE_SUDDEN_CHANGE -> binding.root.context.getString(R.string.anomaly_hr_change)
+                AnomalyType.STEP_FREQ_HIGH -> binding.root.context.getString(R.string.anomaly_step_high)
+                AnomalyType.STEP_FREQ_LOW -> binding.root.context.getString(R.string.anomaly_step_low)
+                AnomalyType.GAIT_SUDDEN_CHANGE -> binding.root.context.getString(R.string.anomaly_gait_change)
+                AnomalyType.FALL_DETECTED -> binding.root.context.getString(R.string.anomaly_fall)
+                AnomalyType.MOTION_INTENSITY_ANOMALY -> binding.root.context.getString(R.string.anomaly_motion)
             }
         }
     }

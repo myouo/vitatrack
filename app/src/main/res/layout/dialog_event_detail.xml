@@ -11,7 +11,7 @@
         android:id="@+id/tv_type"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Event Type"
+        android:text="@string/event_detail"
         android:textSize="18sp"
         android:textStyle="bold" />
 
@@ -28,7 +28,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginTop="8dp"
-        android:text="Severity: 8/10"
+        android:text="严重程度: 8/10"
         android:textSize="14sp" />
 
     <TextView
@@ -36,7 +36,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginTop="16dp"
-        android:text="Details..."
+        android:text="详情..."
         android:textSize="14sp" />
 
     <LinearLayout
@@ -56,7 +56,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginStart="8dp"
-            android:text="No"
+            android:text="@string/cancel"
             android:textSize="14sp" />
     </LinearLayout>
     
@@ -71,13 +71,13 @@
             android:id="@+id/btn_close"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Close" />
+            android:text="@string/close" />
         
         <Button
             android:id="@+id/btn_acknowledge"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginStart="8dp"
-            android:text="Acknowledge" />
+            android:text="@string/acknowledge" />
     </LinearLayout>
 </LinearLayout>

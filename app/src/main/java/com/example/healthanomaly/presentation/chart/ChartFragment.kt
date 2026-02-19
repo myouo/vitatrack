@@ -58,13 +58,13 @@ class ChartFragment : Fragment() {
      */
     private fun setupCharts() {
         // Heart Rate Chart
-        setupLineChart(binding.chartHeartRate, "Heart Rate (BPM)")
+        setupLineChart(binding.chartHeartRate, getString(R.string.chart_heart_rate))
         
         // Accelerometer RMS Chart
-        setupLineChart(binding.chartAccel, "Acceleration RMS (m/s²)")
+        setupLineChart(binding.chartAccel, getString(R.string.chart_accel))
         
         // Step Frequency Chart
-        setupLineChart(binding.chartStepFreq, "Step Frequency (Hz)")
+        setupLineChart(binding.chartStepFreq, getString(R.string.chart_step_freq))
     }
     
     /**
@@ -155,7 +155,7 @@ class ChartFragment : Fragment() {
             return
         }
         
-        val dataSet = LineDataSet(hrData, "Heart Rate").apply {
+        val dataSet = LineDataSet(hrData, getString(R.string.chart_heart_rate)).apply {
             color = Color.RED
             setDrawCircles(false)
             setDrawValues(false)
@@ -179,7 +179,7 @@ class ChartFragment : Fragment() {
             return
         }
         
-        val dataSet = LineDataSet(accelData, "RMS Accel").apply {
+        val dataSet = LineDataSet(accelData, getString(R.string.chart_accel)).apply {
             color = Color.BLUE
             setDrawCircles(false)
             setDrawValues(false)
@@ -203,7 +203,7 @@ class ChartFragment : Fragment() {
             return
         }
         
-        val dataSet = LineDataSet(stepData, "Step Freq").apply {
+        val dataSet = LineDataSet(stepData, getString(R.string.chart_step_freq)).apply {
             color = Color.GREEN
             setDrawCircles(false)
             setDrawValues(false)

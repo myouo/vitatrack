@@ -73,21 +73,21 @@ class EventDetailDialog : DialogFragment() {
         
         binding.tvTimestamp.text = dateFormat.format(Date(event.timestampMs))
         binding.tvType.text = formatType(event.type)
-        binding.tvSeverity.text = "Severity: ${event.severity}/10"
+        binding.tvSeverity.text = "严重程度: ${event.severity}/10"
         binding.tvDetails.text = event.details
-        binding.tvAcknowledged.text = if (event.acknowledged) "Yes" else "No"
+        binding.tvAcknowledged.text = if (event.acknowledged) getString(R.string.acknowledged) else getString(R.string.cancel)
     }
     
     private fun formatType(type: AnomalyType): String {
         return when (type) {
-            AnomalyType.HEART_RATE_HIGH -> "High Heart Rate"
-            AnomalyType.HEART_RATE_LOW -> "Low Heart Rate"
-            AnomalyType.HEART_RATE_SUDDEN_CHANGE -> "Sudden Heart Rate Change"
-            AnomalyType.STEP_FREQ_HIGH -> "High Step Frequency"
-            AnomalyType.STEP_FREQ_LOW -> "Low Step Frequency"
-            AnomalyType.FALL_DETECTED -> "Fall Detected"
-            AnomalyType.GAIT_SUDDEN_CHANGE -> "Sudden Gait Change"
-            AnomalyType.MOTION_INTENSITY_ANOMALY -> "Motion Intensity Anomaly"
+            AnomalyType.HEART_RATE_HIGH -> getString(R.string.anomaly_hr_high)
+            AnomalyType.HEART_RATE_LOW -> getString(R.string.anomaly_hr_low)
+            AnomalyType.HEART_RATE_SUDDEN_CHANGE -> getString(R.string.anomaly_hr_change)
+            AnomalyType.STEP_FREQ_HIGH -> getString(R.string.anomaly_step_high)
+            AnomalyType.STEP_FREQ_LOW -> getString(R.string.anomaly_step_low)
+            AnomalyType.FALL_DETECTED -> getString(R.string.anomaly_fall)
+            AnomalyType.GAIT_SUDDEN_CHANGE -> getString(R.string.anomaly_gait_change)
+            AnomalyType.MOTION_INTENSITY_ANOMALY -> getString(R.string.anomaly_motion)
         }
     }
     

@@ -1,5 +1,7 @@
 package com.example.healthanomaly.data.ble
 
+import com.example.healthanomaly.R
+
 /**
  * Data class representing a BLE device discovered during scan.
  */
@@ -9,5 +11,5 @@ data class BleDevice(
     val rssi: Int
 ) {
     val displayName: String
-        get() = name ?: "Unknown Device"
+        get() = name ?: "未知设备"
 }

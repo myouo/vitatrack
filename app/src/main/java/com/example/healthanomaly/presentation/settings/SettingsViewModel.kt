@@ -2,6 +2,7 @@ package com.example.healthanomaly.presentation.settings
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.healthanomaly.R
 import com.example.healthanomaly.core.Constants
 import com.example.healthanomaly.core.PreferencesManager
 import com.example.healthanomaly.domain.usecase.ExportDataUseCase
@@ -96,7 +97,7 @@ class SettingsViewModel @Inject constructor(
                 lastExportEvents = eventsPath,
                 lastExportFeatures = featuresPath,
                 exportError = if (eventsPath == null && featuresPath == null) {
-                    "No data to export"
+                    "没有可导出的数据"
                 } else null
             )
         }
