@@ -1,76 +1,115 @@
 <?xml version="1.0" encoding="utf-8"?>
-<ScrollView 
+<ScrollView
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:fillViewport="true">
+    android:fillViewport="true"
+    android:background="@color/background_primary">
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="vertical"
-        android:padding="16dp">
+        android:padding="20dp"
+        android:clipToPadding="false">
+
+        <!-- Header -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="设置"
+            android:textSize="28sp"
+            android:textStyle="bold"
+            android:textColor="@color/text_primary"
+            android:layout_marginBottom="24dp" />
 
         <!-- Heart Rate Thresholds -->
         <com.google.android.material.card.MaterialCardView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginBottom="16dp"
-            app:cardCornerRadius="12dp">
+            app:cardCornerRadius="20dp"
+            app:cardElevation="6dp"
+            app:cardBackgroundColor="@color/background_card"
+            app:strokeWidth="1dp"
+            app:strokeColor="@color/chart_hr">
 
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="vertical"
-                android:padding="16dp">
+                android:padding="20dp">
 
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="@string/hr_thresholds"
-                    android:textSize="16sp"
-                    android:textStyle="bold" />
+                    android:textSize="18sp"
+                    android:textStyle="bold"
+                    android:textColor="@color/text_primary"
+                    android:layout_marginBottom="16dp" />
 
                 <!-- HR High -->
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="16dp"
-                    android:text="@string/hr_high_threshold" />
+                    android:text="@string/hr_high_threshold"
+                    android:textSize="13sp"
+                    android:textColor="@color/text_secondary"
+                    android:textAllCaps="true"
+                    android:letterSpacing="0.1" />
 
                 <TextView
                     android:id="@+id/tv_hr_high_value"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="150 BPM" />
+                    android:text="150 BPM"
+                    android:textSize="24sp"
+                    android:textStyle="bold"
+                    android:textColor="@color/chart_hr"
+                    android:layout_marginTop="4dp"
+                    android:layout_marginBottom="8dp" />
 
                 <SeekBar
                     android:id="@+id/seekbar_hr_high"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:max="200"
-                    android:progress="150" />
+                    android:progress="150"
+                    android:progressTint="@color/chart_hr"
+                    android:thumbTint="@color/chart_hr" />
 
                 <!-- HR Low -->
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="16dp"
-                    android:text="@string/hr_low_threshold" />
+                    android:layout_marginTop="20dp"
+                    android:text="@string/hr_low_threshold"
+                    android:textSize="13sp"
+                    android:textColor="@color/text_secondary"
+                    android:textAllCaps="true"
+                    android:letterSpacing="0.1" />
 
                 <TextView
                     android:id="@+id/tv_hr_low_value"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="40 BPM" />
+                    android:text="40 BPM"
+                    android:textSize="24sp"
+                    android:textStyle="bold"
+                    android:textColor="@color/chart_hr"
+                    android:layout_marginTop="4dp"
+                    android:layout_marginBottom="8dp" />
 
                 <SeekBar
                     android:id="@+id/seekbar_hr_low"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:max="80"
-                    android:progress="20" />
+                    android:progress="20"
+                    android:progressTint="@color/chart_hr"
+                    android:thumbTint="@color/chart_hr" />
 
             </LinearLayout>
         </com.google.android.material.card.MaterialCardView>
@@ -80,60 +119,87 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginBottom="16dp"
-            app:cardCornerRadius="12dp">
+            app:cardCornerRadius="20dp"
+            app:cardElevation="6dp"
+            app:cardBackgroundColor="@color/background_card"
+            app:strokeWidth="1dp"
+            app:strokeColor="@color/chart_step">
 
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="vertical"
-                android:padding="16dp">
+                android:padding="20dp">
 
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="@string/step_freq_thresholds"
-                    android:textSize="16sp"
-                    android:textStyle="bold" />
+                    android:textSize="18sp"
+                    android:textStyle="bold"
+                    android:textColor="@color/text_primary"
+                    android:layout_marginBottom="16dp" />
 
                 <!-- Step Freq High -->
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="16dp"
-                    android:text="@string/step_freq_high_threshold" />
+                    android:text="@string/step_freq_high_threshold"
+                    android:textSize="13sp"
+                    android:textColor="@color/text_secondary"
+                    android:textAllCaps="true"
+                    android:letterSpacing="0.1" />
 
                 <TextView
                     android:id="@+id/tv_step_freq_high_value"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="3.0 Hz" />
+                    android:text="3.0 Hz"
+                    android:textSize="24sp"
+                    android:textStyle="bold"
+                    android:textColor="@color/chart_step"
+                    android:layout_marginTop="4dp"
+                    android:layout_marginBottom="8dp" />
 
                 <SeekBar
                     android:id="@+id/seekbar_step_freq_high"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:max="50"
-                    android:progress="30" />
+                    android:progress="30"
+                    android:progressTint="@color/chart_step"
+                    android:thumbTint="@color/chart_step" />
 
                 <!-- Step Freq Low -->
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="16dp"
-                    android:text="@string/step_freq_low_threshold" />
+                    android:layout_marginTop="20dp"
+                    android:text="@string/step_freq_low_threshold"
+                    android:textSize="13sp"
+                    android:textColor="@color/text_secondary"
+                    android:textAllCaps="true"
+                    android:letterSpacing="0.1" />
 
                 <TextView
                     android:id="@+id/tv_step_freq_low_value"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="0.5 Hz" />
+                    android:text="0.5 Hz"
+                    android:textSize="24sp"
+                    android:textStyle="bold"
+                    android:textColor="@color/chart_step"
+                    android:layout_marginTop="4dp"
+                    android:layout_marginBottom="8dp" />
 
                 <SeekBar
                     android:id="@+id/seekbar_step_freq_low"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:max="20"
-                    android:progress="5" />
+                    android:progress="5"
+                    android:progressTint="@color/chart_step"
+                    android:thumbTint="@color/chart_step" />
 
             </LinearLayout>
         </com.google.android.material.card.MaterialCardView>
@@ -143,27 +209,47 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginBottom="16dp"
-            app:cardCornerRadius="12dp">
+            app:cardCornerRadius="20dp"
+            app:cardElevation="6dp"
+            app:cardBackgroundColor="@color/background_card">
 
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="horizontal"
-                android:padding="16dp"
+                android:padding="20dp"
                 android:gravity="center_vertical">
 
-                <TextView
+                <LinearLayout
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
-                    android:text="@string/fall_detection"
-                    android:textSize="16sp" />
+                    android:orientation="vertical">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/fall_detection"
+                        android:textSize="16sp"
+                        android:textStyle="bold"
+                        android:textColor="@color/text_primary" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="检测跌倒并发送警报"
+                        android:textSize="13sp"
+                        android:textColor="@color/text_secondary"
+                        android:layout_marginTop="4dp" />
+                </LinearLayout>
 
                 <com.google.android.material.switchmaterial.SwitchMaterial
                     android:id="@+id/switch_fall_detection"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:checked="true" />
+                    android:checked="true"
+                    app:thumbTint="@color/white"
+                    app:trackTint="@color/primary" />
 
             </LinearLayout>
         </com.google.android.material.card.MaterialCardView>
@@ -172,27 +258,45 @@
         <com.google.android.material.card.MaterialCardView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            app:cardCornerRadius="12dp">
+            app:cardCornerRadius="20dp"
+            app:cardElevation="6dp"
+            app:cardBackgroundColor="@color/background_card">
 
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="vertical"
-                android:padding="16dp">
+                android:padding="20dp">
 
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="@string/data_export"
-                    android:textSize="16sp"
-                    android:textStyle="bold" />
+                    android:textSize="18sp"
+                    android:textStyle="bold"
+                    android:textColor="@color/text_primary"
+                    android:layout_marginBottom="8dp" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="导出所有健康数据为 CSV 文件"
+                    android:textSize="13sp"
+                    android:textColor="@color/text_secondary"
+                    android:layout_marginBottom="16dp" />
 
                 <com.google.android.material.button.MaterialButton
                     android:id="@+id/btn_export"
                     android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="16dp"
+                    android:layout_height="56dp"
                     android:text="@string/export_csv"
+                    android:textSize="16sp"
+                    android:textStyle="bold"
+                    android:textColor="@color/primary"
+                    android:background="@android:color/transparent"
+                    app:strokeColor="@color/primary"
+                    app:strokeWidth="2dp"
+                    app:cornerRadius="16dp"
                     style="@style/Widget.Material3.Button.OutlinedButton" />
 
                 <ProgressBar
@@ -200,6 +304,8 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_gravity="center"
+                    android:layout_marginTop="16dp"
+                    android:indeterminateTint="@color/primary"
                     android:visibility="gone" />
 
             </LinearLayout>
