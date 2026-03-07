@@ -91,4 +91,15 @@
 
     <!-- BLE Device -->
     <string name="unknown_device">未知设备</string>
+    <string name="stream_source">File Stream</string>
+    <string name="stream_source_idle">Waiting for playback</string>
+    <string name="stream_source_playing">File playback active</string>
+    <string name="stream_device_name">Sample Stream File</string>
+    <string name="load_stream_file">Load Stream File</string>
+    <string name="stop_playback">Stop Playback</string>
+    <string name="status_waiting_file">Status: waiting for file</string>
+    <string name="status_playing_file">Status: replaying selected file</string>
+    <string name="stream_source_loaded">Loaded: %s</string>
+    <string name="stream_default_name">Default JSONL Stream</string>
+    <string name="playback_failed">Playback failed. Please verify the stream file.</string>
 </resources>

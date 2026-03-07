@@ -2,33 +2,30 @@ package com.example.healthanomaly.presentation.chart
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.healthanomaly.core.PlaybackSessionManager
 import com.example.healthanomaly.domain.model.FeatureWindow
 import com.example.healthanomaly.domain.repository.AnomalyRepository
-import com.example.healthanomaly.service.DataCollectionService
 import dagger.hilt.android.lifecycle.HiltViewModel
+import javax.inject.Inject
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
-import javax.inject.Inject
 
-/**
- * ViewModel for the Chart screen.
- */
 @HiltViewModel
 class ChartViewModel @Inject constructor(
-    private val anomalyRepository: AnomalyRepository
+    private val anomalyRepository: AnomalyRepository,
+    private val playbackSessionManager: PlaybackSessionManager
 ) : ViewModel() {
-    
-    // Combined state for chart data
+
     val state: StateFlow<ChartUiState> = combine(
         anomalyRepository.featureWindowsFlow,
-        DataCollectionService.currentHeartRate,
-        DataCollectionService.currentStepFreq
-    ) { windows, hr, stepFreq ->
+        playbackSessionManager.currentHeartRate,
+        playbackSessionManager.currentStepFreq
+    ) { windows, heartRate, stepFreq ->
         ChartUiState(
-            featureWindows = windows.takeLast(100), // Last 100 windows
-            currentHeartRate = hr,
+            featureWindows = windows.take(100).asReversed(),
+            currentHeartRate = heartRate,
             currentStepFreq = stepFreq
         )
     }.stateIn(
@@ -38,9 +35,6 @@ class ChartViewModel @Inject constructor(
     )
 }
 
-/**
- * UI State for Chart.
- */
 data class ChartUiState(
     val featureWindows: List<FeatureWindow> = emptyList(),
     val currentHeartRate: Int? = null,

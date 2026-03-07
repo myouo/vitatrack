@@ -80,7 +80,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginBottom="20dp"
-                    android:text="@string/status_stopped"
+                    android:text="@string/status_waiting_file"
                     android:textSize="15sp"
                     android:textColor="?attr/textSecondaryColor" />
 
@@ -88,7 +88,7 @@
                     android:id="@+id/btn_start_stop"
                     android:layout_width="match_parent"
                     android:layout_height="56dp"
-                    android:text="@string/start_collection"
+                    android:text="@string/load_stream_file"
                     android:textSize="16sp"
                     android:textStyle="bold"
                     android:textColor="@color/white"
@@ -288,7 +288,7 @@
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
                         android:layout_weight="1"
-                        android:text="@string/ble_connection"
+                        android:text="@string/stream_source"
                         android:textSize="20sp"
                         android:textStyle="bold"
                         android:textColor="?attr/textPrimaryColor" />
@@ -305,7 +305,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginBottom="20dp"
-                    android:text="@string/ble_disconnected"
+                    android:text="@string/stream_source_idle"
                     android:textSize="15sp"
                     android:textColor="?attr/textSecondaryColor" />
 
@@ -313,6 +313,7 @@
                     android:id="@+id/btn_ble_connect"
                     android:layout_width="match_parent"
                     android:layout_height="56dp"
+                    android:visibility="gone"
                     android:text="@string/ble_scan"
                     android:textSize="16sp"
                     android:textStyle="bold"

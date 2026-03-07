@@ -24,6 +24,12 @@ interface FeatureWindowDao {
      */
     @Query("SELECT * FROM feature_windows ORDER BY timestamp_ms DESC")
     fun getAllFlow(): Flow<List<FeatureWindowEntity>>
+
+    /**
+     * Get recent feature windows ordered by timestamp descending.
+     */
+    @Query("SELECT * FROM feature_windows ORDER BY timestamp_ms DESC LIMIT :limit")
+    fun getRecentFlow(limit: Int): Flow<List<FeatureWindowEntity>>
     
     /**
      * Get recent feature windows.

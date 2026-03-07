@@ -1,12 +1,14 @@
 package com.example.healthanomaly.presentation
 
 import android.Manifest
+import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Bundle
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
+import com.example.healthanomaly.core.PreferencesManager
 import androidx.fragment.app.Fragment
 import com.example.healthanomaly.R
 import com.example.healthanomaly.databinding.ActivityMainBinding
@@ -14,7 +16,9 @@ import com.example.healthanomaly.presentation.dashboard.DashboardFragment
 import com.example.healthanomaly.presentation.chart.ChartFragment
 import com.example.healthanomaly.presentation.events.EventsFragment
 import com.example.healthanomaly.presentation.settings.SettingsFragment
+import com.example.healthanomaly.service.DataCollectionService
 import dagger.hilt.android.AndroidEntryPoint
+import javax.inject.Inject
 
 /**
  * Main activity with bottom navigation for the four main screens.
@@ -23,6 +27,7 @@ import dagger.hilt.android.AndroidEntryPoint
 class MainActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivityMainBinding
+    @Inject lateinit var preferencesManager: PreferencesManager
 
     // Permission request launcher
     private val permissionLauncher = registerForActivityResult(
@@ -40,6 +45,7 @@ class MainActivity : AppCompatActivity() {
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
+        clearStaleCollectionSession()
         setupBottomNavigation()
         requestPermissions()
 
@@ -47,6 +53,12 @@ class MainActivity : AppCompatActivity() {
         if (savedInstanceState == null) {
             showFragment(DashboardFragment())
         }
+    }
+
+    private fun clearStaleCollectionSession() {
+        preferencesManager.setCollectionEnabled(false)
+        DataCollectionService.resetRuntimeState()
+        stopService(Intent(this, DataCollectionService::class.java))
     }
     
     /**

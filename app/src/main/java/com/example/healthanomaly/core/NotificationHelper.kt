@@ -11,6 +11,7 @@ import androidx.core.app.NotificationManagerCompat
 import com.example.healthanomaly.R
 import com.example.healthanomaly.domain.model.AnomalyEvent
 import com.example.healthanomaly.presentation.MainActivity
+import com.example.healthanomaly.service.DataCollectionService
 import dagger.hilt.android.qualifiers.ApplicationContext
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -25,7 +26,7 @@ class NotificationHelper @Inject constructor(
     companion object {
         const val CHANNEL_ID_ALERTS = "health_alerts"
         const val CHANNEL_ID_FOREGROUND = "foreground_service"
-        const val FOREGROUND_NOTIFICATION_ID = 1001
+        const val FOREGROUND_NOTIFICATION_ID = Constants.FOREGROUND_NOTIFICATION_ID
     }
     
     init {
@@ -114,10 +115,10 @@ class NotificationHelper @Inject constructor(
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
         )
         
-        val stopIntent = Intent().apply {
-            action = "com.example.healthanomaly.STOP_SERVICE"
+        val stopIntent = Intent(context, DataCollectionService::class.java).apply {
+            action = DataCollectionService.ACTION_STOP
         }
-        val stopPendingIntent = PendingIntent.getBroadcast(
+        val stopPendingIntent = PendingIntent.getService(
             context,
             0,
             stopIntent,

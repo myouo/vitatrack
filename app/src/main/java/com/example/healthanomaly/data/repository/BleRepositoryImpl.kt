@@ -1,6 +1,6 @@
 package com.example.healthanomaly.data.repository
 
-import com.example.healthanomaly.data.ble.BleManager
+import com.example.healthanomaly.data.stream.FilePlaybackManager
 import com.example.healthanomaly.domain.model.HeartRateData
 import com.example.healthanomaly.domain.repository.BleConnectionState
 import com.example.healthanomaly.domain.repository.BleDevice
@@ -14,24 +14,25 @@ import javax.inject.Singleton
  */
 @Singleton
 class BleRepositoryImpl @Inject constructor(
-    private val bleManager: BleManager
+    private val filePlaybackManager: FilePlaybackManager
 ) : BleRepository {
-    
-    override val heartRateFlow: Flow<HeartRateData> = bleManager.heartRateFlow
-    
-    override val scanResultsFlow: Flow<List<BleDevice>> = bleManager.scanResultsFlow
-    
-    override val connectionStateFlow: Flow<BleConnectionState> = bleManager.connectionStateFlow
-    
-    override fun startScan() = bleManager.startScan()
-    
-    override fun stopScan() = bleManager.stopScan()
-    
-    override fun connect(deviceAddress: String) = bleManager.connect(deviceAddress)
-    
-    override fun disconnect() = bleManager.disconnect()
-    
-    override fun isConnected(): Boolean = bleManager.isConnected()
-    
-    override fun getConnectedDeviceAddress(): String? = bleManager.getConnectedDeviceAddress()
+
+    override val heartRateFlow: Flow<HeartRateData> = filePlaybackManager.heartRateFlow
+
+    override val scanResultsFlow: Flow<List<BleDevice>> = filePlaybackManager.scanResultsFlow
+
+    override val connectionStateFlow: Flow<BleConnectionState> = filePlaybackManager.connectionStateFlow
+
+    override fun startScan() = filePlaybackManager.publishVirtualSource()
+
+    override fun stopScan() = Unit
+
+    override fun connect(deviceAddress: String) = filePlaybackManager.startPlayback()
+
+    override fun disconnect() = filePlaybackManager.stopPlayback()
+
+    override fun isConnected(): Boolean = filePlaybackManager.isPlaying()
+
+    override fun getConnectedDeviceAddress(): String? =
+        if (filePlaybackManager.isPlaying()) "FILE_STREAM_SAMPLE" else null
 }

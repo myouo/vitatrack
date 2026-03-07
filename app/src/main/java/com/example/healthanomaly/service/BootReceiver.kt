@@ -17,13 +17,8 @@ class BootReceiver : BroadcastReceiver() {
     
     override fun onReceive(context: Context, intent: Intent) {
         if (intent.action == Intent.ACTION_BOOT_COMPLETED) {
-            // Restart service if collection was enabled before reboot
-            if (preferencesManager.isCollectionEnabled()) {
-                val serviceIntent = Intent(context, DataCollectionService::class.java).apply {
-                    action = DataCollectionService.ACTION_START
-                }
-                context.startForegroundService(serviceIntent)
-            }
+            // Do not restore transient collection sessions after reboot.
+            preferencesManager.setCollectionEnabled(false)
         }
     }
 }

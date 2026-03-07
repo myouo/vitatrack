@@ -2,6 +2,7 @@ package com.example.healthanomaly.presentation.events
 
 import android.view.LayoutInflater
 import android.view.ViewGroup
+import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
@@ -52,7 +53,7 @@ class EventsAdapter(
                 else -> R.color.severity_low
             }
             binding.tvSeverity.setTextColor(
-                binding.root.context.getColor(severityColor)
+                ContextCompat.getColor(binding.root.context, severityColor)
             )
             
             // Acknowledged indicator

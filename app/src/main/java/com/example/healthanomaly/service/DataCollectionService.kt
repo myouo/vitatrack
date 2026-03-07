@@ -1,6 +1,5 @@
 package com.example.healthanomaly.service
 
-import android.app.Service
 import android.content.Context
 import android.content.Intent
 import android.os.IBinder
@@ -10,11 +9,11 @@ import androidx.lifecycle.LifecycleService
 import androidx.lifecycle.lifecycleScope
 import com.example.healthanomaly.core.Constants
 import com.example.healthanomaly.core.NotificationHelper
+import com.example.healthanomaly.core.PreferencesManager
 import com.example.healthanomaly.domain.detection.AnomalyDetectionEngine
 import com.example.healthanomaly.domain.detection.DetectionConfig
 import com.example.healthanomaly.domain.model.AnomalyEvent
 import com.example.healthanomaly.domain.model.FeatureWindow
-import com.example.healthanomaly.domain.model.HeartRateData
 import com.example.healthanomaly.domain.model.ImuData
 import com.example.healthanomaly.domain.repository.AnomalyRepository
 import com.example.healthanomaly.domain.repository.BleConnectionState
@@ -22,6 +21,7 @@ import com.example.healthanomaly.domain.usecase.CollectImuDataUseCase
 import com.example.healthanomaly.domain.usecase.ProcessWindowUseCase
 import com.example.healthanomaly.domain.usecase.StartBleScanUseCase
 import dagger.hilt.android.AndroidEntryPoint
+import javax.inject.Inject
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.channels.BufferOverflow
 import kotlinx.coroutines.delay
@@ -34,19 +34,9 @@ import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
-import javax.inject.Inject
 
 /**
- * 数据采集与异常检测服务 - 毕业设计核心服务
- *
- * 功能：
- * 1. IMU 传感器数据采集（50Hz）
- * 2. BLE 心率数据采集
- * 3. 滑动窗口特征提取（2s 窗口，1s 步长）
- * 4. 实时异常检测（规则+模型融合）
- * 5. 批量数据库写入（节流优化）
- * 6. 异常片段缓存（前后 10 秒）
- * 7. 分级通知与震动反馈
+ * Foreground service that replays file-based samples as a simulated real-time stream.
  */
 @AndroidEntryPoint
 class DataCollectionService : LifecycleService() {
@@ -56,10 +46,10 @@ class DataCollectionService : LifecycleService() {
     @Inject lateinit var processWindowUseCase: ProcessWindowUseCase
     @Inject lateinit var anomalyRepository: AnomalyRepository
     @Inject lateinit var notificationHelper: NotificationHelper
+    @Inject lateinit var preferencesManager: PreferencesManager
 
     private lateinit var detectionEngine: AnomalyDetectionEngine
     private lateinit var vibrator: Vibrator
-
 
     companion object {
         const val ACTION_START = "com.example.healthanomaly.START_SERVICE"
@@ -83,25 +73,31 @@ class DataCollectionService : LifecycleService() {
             onBufferOverflow = BufferOverflow.DROP_OLDEST
         )
         val detectedAnomalies = _detectedAnomalies.asSharedFlow()
+
+        fun resetRuntimeState() {
+            _isRunning.value = false
+            _currentHeartRate.value = null
+            _currentStepFreq.value = null
+            _isBleConnected.value = false
+        }
     }
 
     private var windowProcessingJob: Job? = null
     private var batchWriteJob: Job? = null
     private var lastWindowTime = 0L
     private var lastHeartRate: Int? = null
+    private var latestSampleTimestampMs = 0L
 
     private val featureWindowBuffer = mutableListOf<FeatureWindow>()
     private val anomalyEventBuffer = mutableListOf<AnomalyEvent>()
-
     private val imuDataRingBuffer = ArrayDeque<ImuData>(1000)
     private val anomalySegmentCache = mutableMapOf<Long, List<ImuData>>()
 
     override fun onCreate() {
         super.onCreate()
-        detectionEngine = AnomalyDetectionEngine(DetectionConfig())
+        detectionEngine = AnomalyDetectionEngine(buildDetectionConfig())
         vibrator = getSystemService(Context.VIBRATOR_SERVICE) as Vibrator
         observeData()
-        startBatchWriteJob()
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
@@ -110,9 +106,17 @@ class DataCollectionService : LifecycleService() {
         when (intent?.action) {
             ACTION_START -> startCollection()
             ACTION_STOP -> stopCollection()
+            null -> {
+                clearCollectionState()
+                stopSelf()
+            }
+            else -> {
+                clearCollectionState()
+                stopSelf()
+            }
         }
 
-        return START_STICKY
+        return START_NOT_STICKY
     }
 
     override fun onBind(intent: Intent): IBinder? {
@@ -121,32 +125,50 @@ class DataCollectionService : LifecycleService() {
     }
 
     private fun startCollection() {
-        if (_isRunning.value) return
-
-        _isRunning.value = true
-
-        startForeground(
-            Constants.FOREGROUND_NOTIFICATION_ID,
-            notificationHelper.showForegroundNotification(
-                "运动健康监测中",
-                "正在采集传感器数据..."
-            )
-        )
-
-        collectImuDataUseCase.startCollection()
-
-        lifecycleScope.launch {
-            detectionEngine.reset()
+        if (_isRunning.value) {
+            return
         }
 
-        startWindowProcessing()
+        runCatching {
+            _isRunning.value = true
+            preferencesManager.setCollectionEnabled(true)
+            resetSessionState()
+            detectionEngine = AnomalyDetectionEngine(buildDetectionConfig())
+
+            startForeground(
+                Constants.FOREGROUND_NOTIFICATION_ID,
+                notificationHelper.showForegroundNotification(
+                    "VitaTrack playback active",
+                    "Streaming simulated samples from file"
+                )
+            )
+            if (batchWriteJob == null) {
+                startBatchWriteJob()
+            }
+
+            collectImuDataUseCase.startCollection()
+            startWindowProcessing()
+        }.onFailure {
+            clearCollectionState()
+            notificationHelper.cancelForegroundNotification()
+            stopForeground(STOP_FOREGROUND_REMOVE)
+            stopSelf()
+        }
     }
 
     private fun stopCollection() {
-        if (!_isRunning.value) return
+        if (!_isRunning.value) {
+            collectImuDataUseCase.stopCollection()
+            windowProcessingJob?.cancel()
+            windowProcessingJob = null
+            batchWriteJob?.cancel()
+            batchWriteJob = null
+            clearCollectionState()
+            return
+        }
 
         _isRunning.value = false
-
+        preferencesManager.setCollectionEnabled(false)
         collectImuDataUseCase.stopCollection()
 
         windowProcessingJob?.cancel()
@@ -155,14 +177,16 @@ class DataCollectionService : LifecycleService() {
         batchWriteJob?.cancel()
         batchWriteJob = null
 
+        _currentHeartRate.value = null
+        _currentStepFreq.value = null
+        _isBleConnected.value = false
+
         lifecycleScope.launch {
             flushBuffers()
+            notificationHelper.cancelForegroundNotification()
+            stopForeground(STOP_FOREGROUND_REMOVE)
+            stopSelf()
         }
-
-        notificationHelper.cancelForegroundNotification()
-
-        stopForeground(STOP_FOREGROUND_REMOVE)
-        stopSelf()
     }
 
     private fun observeData() {
@@ -170,12 +194,16 @@ class DataCollectionService : LifecycleService() {
             collectImuDataUseCase.observeImuData()
                 .buffer(capacity = 100, onBufferOverflow = BufferOverflow.DROP_OLDEST)
                 .collectLatest { imuData ->
+                    latestSampleTimestampMs = imuData.timestampMs
+
                     synchronized(imuDataRingBuffer) {
                         if (imuDataRingBuffer.size >= 1000) {
                             imuDataRingBuffer.removeFirst()
                         }
                         imuDataRingBuffer.addLast(imuData)
                     }
+
+                    updateNotification()
                 }
         }
 
@@ -185,6 +213,7 @@ class DataCollectionService : LifecycleService() {
                 .collectLatest { hrData ->
                     _currentHeartRate.value = hrData.heartRateBpm
                     lastHeartRate = hrData.heartRateBpm
+                    updateNotification()
                 }
         }
 
@@ -197,15 +226,24 @@ class DataCollectionService : LifecycleService() {
 
     private fun startWindowProcessing() {
         windowProcessingJob = lifecycleScope.launch {
-            while (isActive) {
-                val now = System.currentTimeMillis()
+            val windowSizeMs = ProcessWindowUseCase.WINDOW_SIZE_MS
+            val stepSizeMs = ProcessWindowUseCase.STEP_SIZE_MS
 
-                if (now - lastWindowTime >= ProcessWindowUseCase.STEP_SIZE_MS) {
-                    processWindow(now)
-                    lastWindowTime = now
+            while (isActive) {
+                val latestTimestamp = latestSampleTimestampMs
+
+                if (latestTimestamp >= windowSizeMs) {
+                    if (lastWindowTime == 0L) {
+                        lastWindowTime = windowSizeMs - stepSizeMs
+                    }
+
+                    while (latestTimestamp - lastWindowTime >= stepSizeMs) {
+                        lastWindowTime += stepSizeMs
+                        processWindow(lastWindowTime)
+                    }
                 }
 
-                delay(100)
+                delay(50)
             }
         }
     }
@@ -214,10 +252,12 @@ class DataCollectionService : LifecycleService() {
         val windowStartTime = windowEndTime - ProcessWindowUseCase.WINDOW_SIZE_MS
 
         val samples = synchronized(imuDataRingBuffer) {
-            imuDataRingBuffer.filter { it.timestampMs >= windowStartTime }
+            imuDataRingBuffer.filter { it.timestampMs in windowStartTime..windowEndTime }
         }
 
-        if (samples.isEmpty()) return
+        if (samples.isEmpty()) {
+            return
+        }
 
         val window = processWindowUseCase.extractFeatures(
             samples = samples,
@@ -232,7 +272,6 @@ class DataCollectionService : LifecycleService() {
         }
 
         val anomalies = detectionEngine.detect(window)
-
         if (anomalies.isNotEmpty()) {
             handleAnomalies(anomalies, windowEndTime)
         }
@@ -245,16 +284,14 @@ class DataCollectionService : LifecycleService() {
             }
 
             _detectedAnomalies.emit(anomaly)
-
             cacheAnomalySegment(timestamp)
-
             triggerNotificationAndVibration(anomaly)
         }
     }
 
     private fun cacheAnomalySegment(anomalyTimestamp: Long) {
-        val segmentStart = anomalyTimestamp - 10_000
-        val segmentEnd = anomalyTimestamp + 10_000
+        val segmentStart = anomalyTimestamp - 10_000L
+        val segmentEnd = anomalyTimestamp + 10_000L
 
         val segment = synchronized(imuDataRingBuffer) {
             imuDataRingBuffer.filter { it.timestampMs in segmentStart..segmentEnd }
@@ -264,36 +301,14 @@ class DataCollectionService : LifecycleService() {
             anomalySegmentCache[anomalyTimestamp] = segment
 
             if (anomalySegmentCache.size > 50) {
-                val oldestKey = anomalySegmentCache.keys.minOrNull()
-                oldestKey?.let { anomalySegmentCache.remove(it) }
+                anomalySegmentCache.keys.minOrNull()?.let { oldestKey ->
+                    anomalySegmentCache.remove(oldestKey)
+                }
             }
         }
     }
 
     private fun triggerNotificationAndVibration(anomaly: AnomalyEvent) {
-        val (title, message, channelId) = when (anomaly.severity) {
-            in 9..10 -> Triple(
-                "严重异常警告",
-                "${anomaly.type.displayName}: ${anomaly.details}",
-                "anomaly_critical"
-            )
-            in 7..8 -> Triple(
-                "异常警告",
-                "${anomaly.type.displayName}: ${anomaly.details}",
-                "anomaly_high"
-            )
-            in 5..6 -> Triple(
-                "异常提示",
-                "${anomaly.type.displayName}",
-                "anomaly_medium"
-            )
-            else -> Triple(
-                "异常检测",
-                "${anomaly.type.displayName}",
-                "anomaly_low"
-            )
-        }
-
         notificationHelper.showAnomalyAlert(anomaly)
 
         if (anomaly.severity >= 7 && vibrator.hasVibrator()) {
@@ -319,42 +334,82 @@ class DataCollectionService : LifecycleService() {
 
     private suspend fun flushBuffers() {
         val windowsToWrite = synchronized(featureWindowBuffer) {
-            val copy = featureWindowBuffer.toList()
-            featureWindowBuffer.clear()
-            copy
+            featureWindowBuffer.toList().also { featureWindowBuffer.clear() }
         }
 
         val anomaliesToWrite = synchronized(anomalyEventBuffer) {
-            val copy = anomalyEventBuffer.toList()
-            anomalyEventBuffer.clear()
-            copy
+            anomalyEventBuffer.toList().also { anomalyEventBuffer.clear() }
         }
 
-        if (windowsToWrite.isNotEmpty()) {
-            windowsToWrite.forEach { window ->
-                anomalyRepository.insertFeatureWindow(window)
-            }
+        windowsToWrite.forEach { window ->
+            anomalyRepository.insertFeatureWindow(window)
         }
 
-        if (anomaliesToWrite.isNotEmpty()) {
-            anomaliesToWrite.forEach { anomaly ->
-                anomalyRepository.insertAnomalyEvent(anomaly)
-            }
+        anomaliesToWrite.forEach { anomaly ->
+            anomalyRepository.insertAnomalyEvent(anomaly)
         }
     }
 
     private fun updateNotification() {
-        if (!_isRunning.value) return
+        if (!_isRunning.value) {
+            return
+        }
 
-        val hrText = _currentHeartRate.value?.let { "心率: $it BPM" } ?: "心率: --"
-        val stepText = _currentStepFreq.value?.let {
-            "步频: ${"%.1f".format(it)} Hz"
-        } ?: "步频: --"
+        val hrText = _currentHeartRate.value?.let { "HR: $it BPM" } ?: "HR: --"
+        val stepText = _currentStepFreq.value?.let { "Step: ${"%.1f".format(it)} Hz" } ?: "Step: --"
 
         notificationHelper.showForegroundNotification(
-            "运动健康监测中",
+            "VitaTrack playback active",
             "$hrText | $stepText"
         )
+    }
+
+    private fun buildDetectionConfig(): DetectionConfig {
+        return DetectionConfig(
+            hrHighThreshold = preferencesManager.getHrHighThreshold(),
+            hrLowThreshold = preferencesManager.getHrLowThreshold(),
+            stepFreqHighThreshold = preferencesManager.getStepFreqHighThreshold(),
+            stepFreqLowThreshold = preferencesManager.getStepFreqLowThreshold(),
+            fallDetectionEnabled = preferencesManager.isFallDetectionEnabled()
+        )
+    }
+
+    private fun resetSessionState() {
+        lastWindowTime = 0L
+        lastHeartRate = null
+        latestSampleTimestampMs = 0L
+        _currentHeartRate.value = null
+        _currentStepFreq.value = null
+        _isBleConnected.value = false
+
+        synchronized(featureWindowBuffer) {
+            featureWindowBuffer.clear()
+        }
+        synchronized(anomalyEventBuffer) {
+            anomalyEventBuffer.clear()
+        }
+        synchronized(imuDataRingBuffer) {
+            imuDataRingBuffer.clear()
+        }
+        synchronized(anomalySegmentCache) {
+            anomalySegmentCache.clear()
+        }
+    }
+
+    private fun clearCollectionState() {
+        collectImuDataUseCase.stopCollection()
+        windowProcessingJob?.cancel()
+        windowProcessingJob = null
+        batchWriteJob?.cancel()
+        batchWriteJob = null
+        resetRuntimeState()
+        preferencesManager.setCollectionEnabled(false)
+        resetSessionState()
+    }
+
+    override fun onTaskRemoved(rootIntent: Intent?) {
+        stopCollection()
+        super.onTaskRemoved(rootIntent)
     }
 
     override fun onDestroy() {

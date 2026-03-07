@@ -22,9 +22,6 @@ import com.github.mikephil.charting.formatter.ValueFormatter
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
-import java.text.SimpleDateFormat
-import java.util.Date
-import java.util.Locale
 
 /**
  * Chart fragment showing real-time data visualization.
@@ -36,6 +33,9 @@ class ChartFragment : Fragment() {
     private val binding get() = _binding!!
     
     private val viewModel: ChartViewModel by viewModels()
+    private val heartRateAxisFormatter = RelativeTimeAxisFormatter()
+    private val accelAxisFormatter = RelativeTimeAxisFormatter()
+    private val stepAxisFormatter = RelativeTimeAxisFormatter()
     
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -58,19 +58,19 @@ class ChartFragment : Fragment() {
      */
     private fun setupCharts() {
         // Heart Rate Chart
-        setupLineChart(binding.chartHeartRate, getString(R.string.chart_heart_rate))
+        setupLineChart(binding.chartHeartRate, heartRateAxisFormatter)
         
         // Accelerometer RMS Chart
-        setupLineChart(binding.chartAccel, getString(R.string.chart_accel))
+        setupLineChart(binding.chartAccel, accelAxisFormatter)
         
         // Step Frequency Chart
-        setupLineChart(binding.chartStepFreq, getString(R.string.chart_step_freq))
+        setupLineChart(binding.chartStepFreq, stepAxisFormatter)
     }
     
     /**
      * Configure a line chart.
      */
-    private fun setupLineChart(chart: LineChart, title: String) {
+    private fun setupLineChart(chart: LineChart, formatter: RelativeTimeAxisFormatter) {
         chart.apply {
             description.text = ""
             setTouchEnabled(true)
@@ -83,7 +83,7 @@ class ChartFragment : Fragment() {
             xAxis.apply {
                 position = XAxis.XAxisPosition.BOTTOM
                 setDrawGridLines(false)
-                valueFormatter = TimeAxisFormatter()
+                valueFormatter = formatter
                 granularity = 1f
             }
             
@@ -121,13 +121,18 @@ class ChartFragment : Fragment() {
      * Update charts with new data.
      */
     private fun updateCharts(state: ChartUiState) {
+        val baseTimestampMs = state.featureWindows.firstOrNull()?.timestampMs ?: 0L
+        heartRateAxisFormatter.baseTimestampMs = baseTimestampMs
+        accelAxisFormatter.baseTimestampMs = baseTimestampMs
+        stepAxisFormatter.baseTimestampMs = baseTimestampMs
+
         // Update current values display
         binding.tvCurrentHr.text = state.currentHeartRate?.let {
             getString(R.string.heart_rate_value, it)
         } ?: getString(R.string.heart_rate_none)
         
         binding.tvCurrentStepFreq.text = state.currentStepFreq?.let {
-            getString(R.string.step_freq_value, String.format("%.1f", it))
+            getString(R.string.step_freq_value, it)
         } ?: getString(R.string.step_freq_none)
         
         // Update heart rate chart
@@ -148,7 +153,7 @@ class ChartFragment : Fragment() {
             window.heartRateBpm?.let { hr ->
                 Entry(window.timestampMs.toFloat(), hr.toFloat())
             }
-        }
+        }.filter(::isValidEntry)
         
         if (hrData.isEmpty()) {
             binding.chartHeartRate.clear()
@@ -159,7 +164,7 @@ class ChartFragment : Fragment() {
             color = Color.RED
             setDrawCircles(false)
             setDrawValues(false)
-            mode = LineDataSet.Mode.CUBIC_BEZIER
+            mode = resolveLineMode(hrData.size)
         }
         
         binding.chartHeartRate.data = LineData(dataSet)
@@ -172,7 +177,7 @@ class ChartFragment : Fragment() {
     private fun updateAccelChart(windows: List<FeatureWindow>) {
         val accelData = windows.map { window ->
             Entry(window.timestampMs.toFloat(), window.rmsAccel)
-        }
+        }.filter(::isValidEntry)
         
         if (accelData.isEmpty()) {
             binding.chartAccel.clear()
@@ -183,7 +188,7 @@ class ChartFragment : Fragment() {
             color = Color.BLUE
             setDrawCircles(false)
             setDrawValues(false)
-            mode = LineDataSet.Mode.CUBIC_BEZIER
+            mode = resolveLineMode(accelData.size)
         }
         
         binding.chartAccel.data = LineData(dataSet)
@@ -196,7 +201,7 @@ class ChartFragment : Fragment() {
     private fun updateStepFreqChart(windows: List<FeatureWindow>) {
         val stepData = windows.map { window ->
             Entry(window.timestampMs.toFloat(), window.stepFreqHz)
-        }
+        }.filter(::isValidEntry)
         
         if (stepData.isEmpty()) {
             binding.chartStepFreq.clear()
@@ -207,7 +212,7 @@ class ChartFragment : Fragment() {
             color = Color.GREEN
             setDrawCircles(false)
             setDrawValues(false)
-            mode = LineDataSet.Mode.CUBIC_BEZIER
+            mode = resolveLineMode(stepData.size)
         }
         
         binding.chartStepFreq.data = LineData(dataSet)
@@ -218,13 +223,27 @@ class ChartFragment : Fragment() {
         super.onDestroyView()
         _binding = null
     }
-    
-    private class TimeAxisFormatter : ValueFormatter() {
-        private val dateFormat = SimpleDateFormat("HH:mm:ss", Locale.US)
-        
+
+    private fun isValidEntry(entry: Entry): Boolean {
+        return entry.x.isFinite() && entry.y.isFinite()
+    }
+
+    private fun resolveLineMode(pointCount: Int): LineDataSet.Mode {
+        return if (pointCount >= 3) {
+            LineDataSet.Mode.CUBIC_BEZIER
+        } else {
+            LineDataSet.Mode.LINEAR
+        }
+    }
+
+    private class RelativeTimeAxisFormatter : ValueFormatter() {
+        var baseTimestampMs: Long = 0L
+
         override fun getFormattedValue(value: Float): String {
-            return dateFormat.format(Date(value.toLong()))
+            val elapsedSeconds = ((value.toLong() - baseTimestampMs).coerceAtLeast(0L)) / 1000L
+            val minutes = elapsedSeconds / 60L
+            val seconds = elapsedSeconds % 60L
+            return String.format("%02d:%02d", minutes, seconds)
         }
     }
 }
-        

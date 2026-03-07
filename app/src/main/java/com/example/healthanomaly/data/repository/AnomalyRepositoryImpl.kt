@@ -20,6 +20,9 @@ class AnomalyRepositoryImpl @Inject constructor(
     private val featureWindowDao: FeatureWindowDao,
     private val anomalyEventDao: AnomalyEventDao
 ) : AnomalyRepository {
+    companion object {
+        private const val RECENT_WINDOW_LIMIT = 300
+    }
     
     override val anomalyEventsFlow: Flow<List<AnomalyEvent>> =
         anomalyEventDao.getAllFlow().map { entities ->
@@ -27,7 +30,7 @@ class AnomalyRepositoryImpl @Inject constructor(
         }
     
     override val featureWindowsFlow: Flow<List<FeatureWindow>> =
-        featureWindowDao.getAllFlow().map { entities ->
+        featureWindowDao.getRecentFlow(RECENT_WINDOW_LIMIT).map { entities ->
             entities.map { it.toDomain() }
         }
     
@@ -59,5 +62,6 @@ class AnomalyRepositoryImpl @Inject constructor(
     
     override suspend fun clearAllData() {
         anomalyEventDao.deleteAll()
+        featureWindowDao.deleteAll()
     }
 }
