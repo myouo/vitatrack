@@ -1,6 +1,5 @@
 package com.example.healthanomaly.presentation.dashboard
 
-import android.content.Intent
 import android.content.res.ColorStateList
 import android.net.Uri
 import android.os.Bundle
@@ -30,15 +29,9 @@ class DashboardFragment : Fragment() {
 
     private val viewModel: DashboardViewModel by viewModels()
     private val openDocumentLauncher = registerForActivityResult(
-        ActivityResultContracts.OpenDocument()
+        ActivityResultContracts.GetContent()
     ) { uri ->
         uri ?: return@registerForActivityResult
-        runCatching {
-            requireContext().contentResolver.takePersistableUriPermission(
-                uri,
-                Intent.FLAG_GRANT_READ_URI_PERMISSION
-            )
-        }
         viewModel.loadStreamFile(uri, resolveDisplayName(uri))
     }
 
@@ -62,14 +55,7 @@ class DashboardFragment : Fragment() {
             if (viewModel.state.value.isCollecting) {
                 viewModel.stopPlayback()
             } else {
-                openDocumentLauncher.launch(
-                    arrayOf(
-                        "application/json",
-                        "application/x-ndjson",
-                        "text/*",
-                        "application/octet-stream"
-                    )
-                )
+                openDocumentLauncher.launch("*/*")
             }
         }
     }

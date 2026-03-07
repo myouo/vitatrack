@@ -20,11 +20,18 @@ class ChartViewModel @Inject constructor(
 
     val state: StateFlow<ChartUiState> = combine(
         anomalyRepository.featureWindowsFlow,
+        playbackSessionManager.recentFeatureWindows,
+        playbackSessionManager.isRunning,
         playbackSessionManager.currentHeartRate,
         playbackSessionManager.currentStepFreq
-    ) { windows, heartRate, stepFreq ->
+    ) { persistedWindows, liveWindows, isRunning, heartRate, stepFreq ->
+        val chartWindows = when {
+            isRunning || liveWindows.isNotEmpty() -> liveWindows
+            else -> persistedWindows.asReversed().takeLast(60)
+        }
+
         ChartUiState(
-            featureWindows = windows.take(100).asReversed(),
+            featureWindows = chartWindows,
             currentHeartRate = heartRate,
             currentStepFreq = stepFreq
         )

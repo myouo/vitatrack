@@ -28,6 +28,10 @@ import kotlinx.coroutines.launch
  */
 @AndroidEntryPoint
 class ChartFragment : Fragment() {
+    companion object {
+        private const val LIVE_WINDOW_MS = 30_000f
+    }
+
     
     private var _binding: FragmentChartBinding? = null
     private val binding get() = _binding!!
@@ -73,18 +77,21 @@ class ChartFragment : Fragment() {
     private fun setupLineChart(chart: LineChart, formatter: RelativeTimeAxisFormatter) {
         chart.apply {
             description.text = ""
-            setTouchEnabled(true)
-            isDragEnabled = true
-            setScaleEnabled(true)
-            setPinchZoom(true)
+            setTouchEnabled(false)
+            isDragEnabled = false
+            setScaleEnabled(false)
+            setPinchZoom(false)
             setDrawGridBackground(false)
+            setAutoScaleMinMaxEnabled(true)
+            setVisibleXRangeMaximum(LIVE_WINDOW_MS)
             
             // X-axis
             xAxis.apply {
                 position = XAxis.XAxisPosition.BOTTOM
                 setDrawGridLines(false)
                 valueFormatter = formatter
-                granularity = 1f
+                granularity = 5_000f
+                axisMinimum = 0f
             }
             
             // Left Y-axis
@@ -98,9 +105,6 @@ class ChartFragment : Fragment() {
             
             // Legend
             legend.isEnabled = false
-            
-            // Animation
-            animateX(500)
         }
     }
     
@@ -160,15 +164,12 @@ class ChartFragment : Fragment() {
             return
         }
         
-        val dataSet = LineDataSet(hrData, getString(R.string.chart_heart_rate)).apply {
+        renderLiveChart(
+            chart = binding.chartHeartRate,
+            entries = hrData,
+            label = getString(R.string.chart_heart_rate),
             color = Color.RED
-            setDrawCircles(false)
-            setDrawValues(false)
-            mode = resolveLineMode(hrData.size)
-        }
-        
-        binding.chartHeartRate.data = LineData(dataSet)
-        binding.chartHeartRate.invalidate()
+        )
     }
     
     /**
@@ -184,15 +185,12 @@ class ChartFragment : Fragment() {
             return
         }
         
-        val dataSet = LineDataSet(accelData, getString(R.string.chart_accel)).apply {
+        renderLiveChart(
+            chart = binding.chartAccel,
+            entries = accelData,
+            label = getString(R.string.chart_accel),
             color = Color.BLUE
-            setDrawCircles(false)
-            setDrawValues(false)
-            mode = resolveLineMode(accelData.size)
-        }
-        
-        binding.chartAccel.data = LineData(dataSet)
-        binding.chartAccel.invalidate()
+        )
     }
     
     /**
@@ -208,15 +206,12 @@ class ChartFragment : Fragment() {
             return
         }
         
-        val dataSet = LineDataSet(stepData, getString(R.string.chart_step_freq)).apply {
+        renderLiveChart(
+            chart = binding.chartStepFreq,
+            entries = stepData,
+            label = getString(R.string.chart_step_freq),
             color = Color.GREEN
-            setDrawCircles(false)
-            setDrawValues(false)
-            mode = resolveLineMode(stepData.size)
-        }
-        
-        binding.chartStepFreq.data = LineData(dataSet)
-        binding.chartStepFreq.invalidate()
+        )
     }
     
     override fun onDestroyView() {
@@ -228,12 +223,27 @@ class ChartFragment : Fragment() {
         return entry.x.isFinite() && entry.y.isFinite()
     }
 
-    private fun resolveLineMode(pointCount: Int): LineDataSet.Mode {
-        return if (pointCount >= 3) {
-            LineDataSet.Mode.CUBIC_BEZIER
-        } else {
-            LineDataSet.Mode.LINEAR
+    private fun renderLiveChart(
+        chart: LineChart,
+        entries: List<Entry>,
+        label: String,
+        color: Int
+    ) {
+        val dataSet = LineDataSet(entries, label).apply {
+            this.color = color
+            lineWidth = 2f
+            setDrawCircles(false)
+            setDrawValues(false)
+            setDrawHighlightIndicators(false)
+            mode = LineDataSet.Mode.LINEAR
         }
+
+        chart.data = LineData(dataSet)
+        chart.data.notifyDataChanged()
+        chart.notifyDataSetChanged()
+        chart.setVisibleXRangeMaximum(LIVE_WINDOW_MS)
+        chart.moveViewToX((entries.last().x - LIVE_WINDOW_MS).coerceAtLeast(0f))
+        chart.invalidate()
     }
 
     private class RelativeTimeAxisFormatter : ValueFormatter() {

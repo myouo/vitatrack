@@ -45,6 +45,10 @@ class PlaybackSessionManager @Inject constructor(
     private val notificationHelper: NotificationHelper,
     private val preferencesManager: PreferencesManager
 ) {
+    companion object {
+        private const val MAX_LIVE_WINDOWS = 60
+    }
+
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
     private val playbackExceptionHandler = CoroutineExceptionHandler { _, throwable ->
         scope.launch {
@@ -62,6 +66,9 @@ class PlaybackSessionManager @Inject constructor(
 
     private val _currentStepFreq = MutableStateFlow<Float?>(null)
     val currentStepFreq: StateFlow<Float?> = _currentStepFreq.asStateFlow()
+
+    private val _recentFeatureWindows = MutableStateFlow<List<FeatureWindow>>(emptyList())
+    val recentFeatureWindows: StateFlow<List<FeatureWindow>> = _recentFeatureWindows.asStateFlow()
 
     private val _isSourceActive = MutableStateFlow(false)
     val isSourceActive: StateFlow<Boolean> = _isSourceActive.asStateFlow()
@@ -216,6 +223,7 @@ class PlaybackSessionManager @Inject constructor(
         )
 
         _currentStepFreq.value = window.stepFreqHz
+        appendRecentWindow(window)
         synchronized(featureWindowBuffer) {
             featureWindowBuffer.add(window)
         }
@@ -323,6 +331,11 @@ class PlaybackSessionManager @Inject constructor(
         _currentHeartRate.value = null
         _currentStepFreq.value = null
         _isSourceActive.value = false
+        _recentFeatureWindows.value = emptyList()
+    }
+
+    private fun appendRecentWindow(window: FeatureWindow) {
+        _recentFeatureWindows.value = (_recentFeatureWindows.value + window).takeLast(MAX_LIVE_WINDOWS)
     }
 
     private suspend fun processAvailableWindows(latestTimestamp: Long) {

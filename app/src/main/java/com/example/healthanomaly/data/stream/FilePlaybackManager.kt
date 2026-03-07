@@ -2,7 +2,9 @@ package com.example.healthanomaly.data.stream
 
 import android.content.Context
 import android.net.Uri
+import android.os.SystemClock
 import android.provider.OpenableColumns
+import android.util.Log
 import com.example.healthanomaly.R
 import com.example.healthanomaly.domain.model.HeartRateData
 import com.example.healthanomaly.domain.model.ImuData
@@ -28,16 +30,20 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.json.JSONArray
 import org.json.JSONObject
+import kotlin.math.roundToLong
 
 @Singleton
 class FilePlaybackManager @Inject constructor(
     @ApplicationContext private val context: Context
 ) {
     companion object {
+        private const val TAG = "FilePlaybackManager"
         private const val STREAM_DEVICE_ADDRESS = "FILE_STREAM_SAMPLE"
-        private const val PLAYBACK_SPEED = 4.0
+        private const val PLAYBACK_SPEED = 1.0
         private const val MAX_BUFFER_SIZE = 2_000
         private const val RING_BUFFER_DURATION_MS = 30_000L
+        private const val EPOCH_MILLIS_THRESHOLD = 100_000_000_000L
+        private const val EPOCH_SECONDS_THRESHOLD = 1_000_000_000L
         private val STREAM_RESOURCE_CANDIDATES = listOf(
             "sample_stream_jsonl",
             "sample_stream"
@@ -76,13 +82,20 @@ class FilePlaybackManager @Inject constructor(
                 ?.bufferedReader()
                 ?.use { it.readText() }
                 ?: throw IllegalArgumentException("Unable to read selected file")
+            val rawLineCount = content.lineSequence().count { it.isNotBlank() }
 
             val resolvedName = displayName ?: resolveDisplayName(uri)
                 ?: context.getString(R.string.stream_default_name)
-            val rows = parseContent(uri.toString(), content)
+            val rows = parseContent(resolvedName, content)
             if (rows.isEmpty()) {
                 throw IllegalArgumentException("No valid stream samples found")
             }
+
+            val durationMs = rows.last().timestampMs - rows.first().timestampMs
+            Log.i(
+                TAG,
+                "Loaded stream '$resolvedName' with rawLineCount=$rawLineCount, parsedSampleCount=${rows.size}, normalizedDurationMs=$durationMs"
+            )
 
             currentStream = StreamContent(
                 samples = rows,
@@ -204,18 +217,20 @@ class FilePlaybackManager @Inject constructor(
     }
 
     private suspend fun replayStream(rows: List<FileSampleRow>) {
-        rows.forEachIndexed { index, row ->
+        val playbackStartElapsedMs = SystemClock.elapsedRealtime()
+        val streamStartTimestampMs = rows.firstOrNull()?.timestampMs ?: 0L
+        val streamEndTimestampMs = rows.lastOrNull()?.timestampMs ?: streamStartTimestampMs
+        Log.i(
+            TAG,
+            "Starting playback: samples=${rows.size}, streamDurationMs=${streamEndTimestampMs - streamStartTimestampMs}"
+        )
+
+        rows.forEach { row ->
             val adjustedTimestamp = row.timestampMs
-            val previousTimestamp = when {
-                index == 0 -> 0L
-                else -> rows[index - 1].timestampMs
-            }
-            val sampleDelayMs = if (index == 0 && adjustedTimestamp == 0L) {
-                0L
-            } else {
-                (((adjustedTimestamp - previousTimestamp) / PLAYBACK_SPEED).toLong())
-                    .coerceAtLeast(0L)
-            }
+            val streamOffsetMs = adjustedTimestamp - streamStartTimestampMs
+            val targetElapsedMs = (streamOffsetMs / PLAYBACK_SPEED).roundToLong()
+            val elapsedSinceStartMs = SystemClock.elapsedRealtime() - playbackStartElapsedMs
+            val sampleDelayMs = (targetElapsedMs - elapsedSinceStartMs).coerceAtLeast(0L)
 
             if (sampleDelayMs > 0) {
                 delay(sampleDelayMs)
@@ -223,6 +238,12 @@ class FilePlaybackManager @Inject constructor(
 
             emitSample(row, adjustedTimestamp)
         }
+
+        val actualElapsedMs = SystemClock.elapsedRealtime() - playbackStartElapsedMs
+        Log.i(
+            TAG,
+            "Playback finished: actualElapsedMs=$actualElapsedMs, expectedDurationMs=${streamEndTimestampMs - streamStartTimestampMs}"
+        )
     }
 
     private suspend fun emitSample(row: FileSampleRow, adjustedTimestampMs: Long) {
@@ -284,15 +305,26 @@ class FilePlaybackManager @Inject constructor(
     }
 
     private fun parseJsonl(content: String): List<FileSampleRow> {
-        return content.lineSequence()
-            .map { it.trim() }
+        val sanitizedLines = content.lineSequence()
+            .map(::sanitizeJsonLine)
             .filter { it.isNotEmpty() && !it.startsWith("#") }
-            .mapNotNull { line ->
-                runCatching { JSONObject(line) }.getOrNull()?.let { root ->
-                    parseJsonObject(root)
-                }
-            }
             .toList()
+
+        val parsedRows = sanitizedLines.mapNotNull { line ->
+            runCatching { JSONObject(line) }.getOrNull()?.let { root ->
+                parseJsonObject(root)
+            }
+        }
+
+        val droppedCount = sanitizedLines.size - parsedRows.size
+        if (droppedCount > 0) {
+            Log.w(
+                TAG,
+                "Dropped $droppedCount JSONL row(s) during parsing. inputLineCount=${sanitizedLines.size}, parsedSampleCount=${parsedRows.size}"
+            )
+        }
+
+        return parsedRows
     }
 
     private fun parseJsonObject(root: JSONObject): FileSampleRow? {
@@ -303,7 +335,7 @@ class FilePlaybackManager @Inject constructor(
             }
         }
 
-        val timestampMs = findLong(containers, "timestampMs", "timestamp", "time", "ts")
+        val timestampMs = findTimestampMs(containers)
             ?: return null
         val accelVector = findVector(containers, "accel", "accelerometer", "acceleration")
         val gyroVector = findVector(containers, "gyro", "gyroscope", "rotation")
@@ -366,7 +398,7 @@ class FilePlaybackManager @Inject constructor(
             }
 
             val rowMap = headers.zip(values).toMap()
-            val timestampMs = findLong(rowMap, "timestampms", "timestamp", "time", "ts")
+            val timestampMs = findTimestampMs(rowMap)
                 ?: return@mapNotNull null
 
             val accelX = findFloat(rowMap, "accelx", "ax", "accelerationx")
@@ -394,9 +426,9 @@ class FilePlaybackManager @Inject constructor(
             return emptyList()
         }
 
-        val sortedRows = rows.sortedBy { it.timestampMs }
-        val originTimestamp = sortedRows.first().timestampMs
-        return sortedRows.map { row ->
+        val normalizedRows = stitchTimelineSegments(applyTimestampUnitNormalization(rows))
+        val originTimestamp = normalizedRows.first().timestampMs
+        return normalizedRows.map { row ->
             row.copy(timestampMs = row.timestampMs - originTimestamp)
         }
     }
@@ -501,8 +533,120 @@ class FilePlaybackManager @Inject constructor(
         return keys.firstNotNullOfOrNull { key -> rowMap[key]?.toFloatOrNull() }
     }
 
+    private fun findTimestampMs(containers: List<JSONObject>): Long? {
+        findLong(containers, "timestampMs", "timeMs", "tsMs")?.let { return it }
+        return findNumericTimestamp(containers, "timestamp", "time", "ts")
+    }
+
+    private fun findTimestampMs(rowMap: Map<String, String>): Long? {
+        findLong(rowMap, "timestampms", "timems", "tsms")?.let { return it }
+        return findNumericTimestamp(rowMap, "timestamp", "time", "ts")
+    }
+
+    private fun findNumericTimestamp(containers: List<JSONObject>, vararg keys: String): Long? {
+        containers.forEach { container ->
+            keys.forEach { key ->
+                if (container.has(key) && !container.isNull(key)) {
+                    val rawValue = container.optString(key)
+                    parseTimestampToken(rawValue)?.let { return it }
+                    container.optDouble(key, Double.NaN)
+                        .takeIf { !it.isNaN() }
+                        ?.let { return normalizeStandaloneTimestamp(it) }
+                }
+            }
+        }
+        return null
+    }
+
+    private fun findNumericTimestamp(rowMap: Map<String, String>, vararg keys: String): Long? {
+        return keys.firstNotNullOfOrNull { key ->
+            rowMap[key]?.let(::parseTimestampToken)
+        }
+    }
+
+    private fun parseTimestampToken(rawValue: String): Long? {
+        val numericValue = rawValue.toLongOrNull()?.toDouble()
+            ?: rawValue.toDoubleOrNull()
+            ?: return null
+        return normalizeStandaloneTimestamp(numericValue)
+    }
+
+    private fun normalizeStandaloneTimestamp(rawTimestamp: Double): Long {
+        return when {
+            rawTimestamp >= EPOCH_MILLIS_THRESHOLD -> rawTimestamp.roundToLong()
+            rawTimestamp >= EPOCH_SECONDS_THRESHOLD -> (rawTimestamp * 1000.0).roundToLong()
+            rawTimestamp % 1.0 != 0.0 -> (rawTimestamp * 1000.0).roundToLong()
+            else -> rawTimestamp.roundToLong()
+        }
+    }
+
+    private fun applyTimestampUnitNormalization(rows: List<FileSampleRow>): List<FileSampleRow> {
+        val positiveDeltas = rows.zipWithNext { previous, current ->
+            current.timestampMs - previous.timestampMs
+        }.filter { it > 0L }
+        val representativeDeltaMs = positiveDeltas.firstOrNull() ?: return rows
+
+        val unitScale = when {
+            representativeDeltaMs in 1L..5L -> 1000L
+            else -> 1L
+        }
+        if (unitScale == 1L) {
+            return rows
+        }
+
+        return rows.map { row ->
+            row.copy(timestampMs = row.timestampMs * unitScale)
+        }
+    }
+
+    private fun stitchTimelineSegments(rows: List<FileSampleRow>): List<FileSampleRow> {
+        if (rows.size <= 1) {
+            return rows
+        }
+
+        val positiveDeltas = rows.zipWithNext { previous, current ->
+            current.timestampMs - previous.timestampMs
+        }.filter { it > 0L }
+        val representativeStepMs = positiveDeltas.firstOrNull() ?: 0L
+
+        val stitchedRows = ArrayList<FileSampleRow>(rows.size)
+        var segmentOffsetMs = 0L
+        var resetCount = 0
+        var previousRawTimestampMs = rows.first().timestampMs
+        var previousStitchedTimestampMs = rows.first().timestampMs
+        stitchedRows.add(rows.first())
+
+        for (index in 1 until rows.size) {
+            val currentRow = rows[index]
+            if (currentRow.timestampMs < previousRawTimestampMs) {
+                resetCount++
+                segmentOffsetMs = previousStitchedTimestampMs + representativeStepMs - currentRow.timestampMs
+            }
+
+            val stitchedTimestampMs = currentRow.timestampMs + segmentOffsetMs
+            stitchedRows.add(currentRow.copy(timestampMs = stitchedTimestampMs))
+            previousRawTimestampMs = currentRow.timestampMs
+            previousStitchedTimestampMs = stitchedTimestampMs
+        }
+
+        if (resetCount > 0) {
+            Log.i(TAG, "Detected $resetCount timestamp reset(s) while stitching stream timeline")
+        }
+
+        return stitchedRows
+    }
+
     private fun normalizeKey(value: String): String {
-        return value.lowercase().filter { it.isLetterOrDigit() }
+        return value
+            .replace("\uFEFF", "")
+            .lowercase()
+            .filter { it.isLetterOrDigit() }
+    }
+
+    private fun sanitizeJsonLine(line: String): String {
+        return line
+            .trim()
+            .removePrefix("\uFEFF")
     }
 
     private fun completePlayback() {
