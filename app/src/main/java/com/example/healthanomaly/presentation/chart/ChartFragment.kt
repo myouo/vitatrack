@@ -30,6 +30,10 @@ import kotlinx.coroutines.launch
 class ChartFragment : Fragment() {
     companion object {
         private const val LIVE_WINDOW_MS = 30_000f
+        private const val Y_AXIS_PADDING_RATIO = 0.12f
+        private const val MIN_HEART_RATE_RANGE = 8f
+        private const val MIN_ACCEL_RANGE = 0.8f
+        private const val MIN_STEP_FREQ_RANGE = 0.3f
     }
 
     
@@ -82,7 +86,7 @@ class ChartFragment : Fragment() {
             setScaleEnabled(false)
             setPinchZoom(false)
             setDrawGridBackground(false)
-            setAutoScaleMinMaxEnabled(true)
+            setAutoScaleMinMaxEnabled(false)
             setVisibleXRangeMaximum(LIVE_WINDOW_MS)
             
             // X-axis
@@ -97,7 +101,6 @@ class ChartFragment : Fragment() {
             // Left Y-axis
             axisLeft.apply {
                 setDrawGridLines(true)
-                axisMinimum = 0f
             }
             
             // Right Y-axis
@@ -168,7 +171,8 @@ class ChartFragment : Fragment() {
             chart = binding.chartHeartRate,
             entries = hrData,
             label = getString(R.string.chart_heart_rate),
-            color = Color.RED
+            color = Color.RED,
+            minRange = MIN_HEART_RATE_RANGE
         )
     }
     
@@ -189,7 +193,8 @@ class ChartFragment : Fragment() {
             chart = binding.chartAccel,
             entries = accelData,
             label = getString(R.string.chart_accel),
-            color = Color.BLUE
+            color = Color.BLUE,
+            minRange = MIN_ACCEL_RANGE
         )
     }
     
@@ -210,7 +215,8 @@ class ChartFragment : Fragment() {
             chart = binding.chartStepFreq,
             entries = stepData,
             label = getString(R.string.chart_step_freq),
-            color = Color.GREEN
+            color = Color.GREEN,
+            minRange = MIN_STEP_FREQ_RANGE
         )
     }
     
@@ -227,7 +233,8 @@ class ChartFragment : Fragment() {
         chart: LineChart,
         entries: List<Entry>,
         label: String,
-        color: Int
+        color: Int,
+        minRange: Float
     ) {
         val dataSet = LineDataSet(entries, label).apply {
             this.color = color
@@ -238,12 +245,29 @@ class ChartFragment : Fragment() {
             mode = LineDataSet.Mode.LINEAR
         }
 
+        applyYAxisBounds(chart, entries, minRange)
         chart.data = LineData(dataSet)
         chart.data.notifyDataChanged()
         chart.notifyDataSetChanged()
         chart.setVisibleXRangeMaximum(LIVE_WINDOW_MS)
         chart.moveViewToX((entries.last().x - LIVE_WINDOW_MS).coerceAtLeast(0f))
         chart.invalidate()
+    }
+
+    private fun applyYAxisBounds(
+        chart: LineChart,
+        entries: List<Entry>,
+        minRange: Float
+    ) {
+        val minValue = entries.minOf { it.y }
+        val maxValue = entries.maxOf { it.y }
+        val valueRange = (maxValue - minValue).coerceAtLeast(minRange)
+        val padding = (valueRange * Y_AXIS_PADDING_RATIO).coerceAtLeast(minRange * 0.1f)
+        val center = (maxValue + minValue) / 2f
+        val halfRange = valueRange / 2f + padding
+
+        chart.axisLeft.axisMinimum = center - halfRange
+        chart.axisLeft.axisMaximum = center + halfRange
     }
 
     private class RelativeTimeAxisFormatter : ValueFormatter() {
