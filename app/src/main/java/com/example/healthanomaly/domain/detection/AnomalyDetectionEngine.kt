@@ -35,8 +35,7 @@ class AnomalyDetectionEngine(
     private val hrStatistics = SlidingWindowStatistics(windowSize = 300)
     private val stepFreqStatistics = SlidingWindowStatistics(windowSize = 200)
 
-    private val cooldownManager = CooldownManager(cooldownMs = 60_000L)
-    private val durationValidator = DurationValidator()
+    private val durationValidator = DurationValidator(requiredWindows = 1)
     private val evidenceAccumulator = EvidenceAccumulator()
 
     private var lastWindow: FeatureWindow? = null
@@ -53,8 +52,7 @@ class AnomalyDetectionEngine(
         detectHeartRateModel(window, timestamp, detectedAnomalies)
         detectStepFrequencyModel(window, timestamp, detectedAnomalies)
 
-        val validatedAnomalies = fuseAndValidate(detectedAnomalies, window)
-        val finalAnomalies = cooldownManager.filter(validatedAnomalies, timestamp)
+        val finalAnomalies = fuseAndValidate(detectedAnomalies, window)
 
         lastWindow = window
 
@@ -431,7 +429,6 @@ class AnomalyDetectionEngine(
         stepFreqBaseline.reset()
         hrStatistics.reset()
         stepFreqStatistics.reset()
-        cooldownManager.reset()
         durationValidator.reset()
         evidenceAccumulator.reset()
         lastWindow = null
@@ -521,8 +518,8 @@ class CooldownManager(private val cooldownMs: Long) {
 
     fun filter(anomalies: List<AnomalyEvent>, currentTime: Long): List<AnomalyEvent> {
         return anomalies.filter { anomaly ->
-            val lastTime = lastAlertTime[anomaly.type] ?: 0
-            val shouldAlert = (currentTime - lastTime) > cooldownMs
+            val lastTime = lastAlertTime[anomaly.type]
+            val shouldAlert = lastTime == null || (currentTime - lastTime) > cooldownMs
 
             if (shouldAlert) {
                 lastAlertTime[anomaly.type] = currentTime

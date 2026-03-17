@@ -8,6 +8,7 @@ import android.content.Intent
 import android.os.Build
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
+import androidx.core.text.HtmlCompat
 import com.example.healthanomaly.R
 import com.example.healthanomaly.domain.model.AnomalyEvent
 import com.example.healthanomaly.presentation.MainActivity
@@ -85,6 +86,11 @@ class NotificationHelper @Inject constructor(
             .setSmallIcon(R.drawable.ic_notification)
             .setContentTitle("${context.getString(R.string.notification_channel_alerts)}: ${formatAnomalyType(event.type)}")
             .setContentText(event.details)
+            .setStyle(
+                NotificationCompat.BigTextStyle().bigText(
+                    HtmlCompat.fromHtml(event.details, HtmlCompat.FROM_HTML_MODE_LEGACY).toString()
+                )
+            )
             .setPriority(NotificationCompat.PRIORITY_HIGH)
             .setCategory(NotificationCompat.CATEGORY_ALARM)
             .setAutoCancel(true)

@@ -35,6 +35,7 @@ import kotlinx.coroutines.flow.buffer
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 @Singleton
 class PlaybackSessionManager @Inject constructor(
@@ -86,7 +87,8 @@ class PlaybackSessionManager @Inject constructor(
     )
     val detectedAnomalies = _detectedAnomalies.asSharedFlow()
 
-    private var detectionEngine = AnomalyDetectionEngine(buildDetectionConfig())
+    private var activeDetectionConfig = buildDetectionConfig()
+    private var detectionEngine = AnomalyDetectionEngine(activeDetectionConfig)
     private var windowProcessingJob: Job? = null
     private var batchWriteJob: Job? = null
     private var lastWindowTime = 0L
@@ -94,7 +96,6 @@ class PlaybackSessionManager @Inject constructor(
     private var latestSampleTimestampMs = 0L
 
     private val featureWindowBuffer = mutableListOf<FeatureWindow>()
-    private val anomalyEventBuffer = mutableListOf<AnomalyEvent>()
     private val imuDataRingBuffer = ArrayDeque<ImuData>(1000)
 
     init {
@@ -114,7 +115,7 @@ class PlaybackSessionManager @Inject constructor(
         runCatching {
             anomalyRepository.clearAllData()
             resetSessionState()
-            detectionEngine = AnomalyDetectionEngine(buildDetectionConfig())
+            refreshDetectionEngine(force = true)
             _sourceName.value = loadResult.displayName
             _errorMessage.value = null
             _isRunning.value = true
@@ -228,17 +229,14 @@ class PlaybackSessionManager @Inject constructor(
             featureWindowBuffer.add(window)
         }
 
+        refreshDetectionEngine()
         val anomalies = detectionEngine.detect(window)
         if (anomalies.isEmpty()) {
             return
         }
 
         anomalies.forEach { anomaly ->
-            synchronized(anomalyEventBuffer) {
-                anomalyEventBuffer.add(anomaly)
-            }
-            _detectedAnomalies.emit(anomaly)
-            triggerAlert(anomaly)
+            persistAndAlert(anomaly)
         }
     }
 
@@ -256,20 +254,25 @@ class PlaybackSessionManager @Inject constructor(
         val windowsToWrite = synchronized(featureWindowBuffer) {
             featureWindowBuffer.toList().also { featureWindowBuffer.clear() }
         }
-        val anomaliesToWrite = synchronized(anomalyEventBuffer) {
-            anomalyEventBuffer.toList().also { anomalyEventBuffer.clear() }
-        }
 
-        if (windowsToWrite.isEmpty() && anomaliesToWrite.isEmpty()) {
+        if (windowsToWrite.isEmpty()) {
             return
         }
 
         windowsToWrite.forEach { window ->
             anomalyRepository.insertFeatureWindow(window)
         }
-        anomaliesToWrite.forEach { anomaly ->
-            anomalyRepository.insertAnomalyEvent(anomaly)
+    }
+
+    private suspend fun persistAndAlert(anomaly: AnomalyEvent) {
+        val persistedEvent = withContext(Dispatchers.IO) {
+            val eventWithSystemTime = anomaly.copy(timestampMs = System.currentTimeMillis())
+            val eventId = anomalyRepository.insertAnomalyEvent(eventWithSystemTime)
+            eventWithSystemTime.copy(id = eventId)
         }
+
+        _detectedAnomalies.emit(persistedEvent)
+        triggerAlert(persistedEvent)
     }
 
     private fun triggerAlert(anomaly: AnomalyEvent) {
@@ -277,7 +280,7 @@ class PlaybackSessionManager @Inject constructor(
             notificationHelper.showAnomalyAlert(anomaly)
 
             val localVibrator = vibrator ?: return
-            if (!localVibrator.hasVibrator() || anomaly.severity < 7) {
+            if (!localVibrator.hasVibrator()) {
                 return
             }
 
@@ -285,7 +288,8 @@ class PlaybackSessionManager @Inject constructor(
                 10 -> longArrayOf(0, 500, 200, 500, 200, 500)
                 9 -> longArrayOf(0, 400, 200, 400)
                 8 -> longArrayOf(0, 300, 200, 300)
-                else -> longArrayOf(0, 200)
+                6, 7 -> longArrayOf(0, 220, 120, 220)
+                else -> longArrayOf(0, 180, 100, 180)
             }
 
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
@@ -309,6 +313,16 @@ class PlaybackSessionManager @Inject constructor(
         )
     }
 
+    private fun refreshDetectionEngine(force: Boolean = false) {
+        val latestConfig = buildDetectionConfig()
+        if (!force && latestConfig == activeDetectionConfig) {
+            return
+        }
+
+        activeDetectionConfig = latestConfig
+        detectionEngine = AnomalyDetectionEngine(activeDetectionConfig)
+    }
+
     private fun resetSessionState() {
         lastWindowTime = 0L
         lastHeartRate = null
@@ -316,9 +330,6 @@ class PlaybackSessionManager @Inject constructor(
 
         synchronized(featureWindowBuffer) {
             featureWindowBuffer.clear()
-        }
-        synchronized(anomalyEventBuffer) {
-            anomalyEventBuffer.clear()
         }
         synchronized(imuDataRingBuffer) {
             imuDataRingBuffer.clear()
