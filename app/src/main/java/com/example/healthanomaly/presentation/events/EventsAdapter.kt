@@ -1,5 +1,6 @@
 package com.example.healthanomaly.presentation.events
 
+import android.content.res.ColorStateList
 import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.core.content.ContextCompat
@@ -44,15 +45,18 @@ class EventsAdapter(
             binding.tvTimestamp.text = dateFormat.format(Date(event.timestampMs))
             binding.tvType.text = formatType(event.type)
             binding.tvDetails.text = event.details
-            binding.tvSeverity.text = "严重程度: ${event.severity}/10"
             
-            // Set severity color
-            val severityColor = when {
-                event.severity >= 8 -> R.color.severity_high
-                event.severity >= 5 -> R.color.severity_medium
-                else -> R.color.severity_low
+            // Set severity badge: short label + colored background + white text
+            val (severityLabel, severityColor) = when {
+                event.severity >= 8 -> "高" to R.color.severity_high
+                event.severity >= 5 -> "中" to R.color.severity_medium
+                else -> "低" to R.color.severity_low
             }
+            binding.tvSeverity.text = severityLabel
             binding.tvSeverity.setTextColor(
+                ContextCompat.getColor(binding.root.context, R.color.white)
+            )
+            binding.tvSeverity.backgroundTintList = ColorStateList.valueOf(
                 ContextCompat.getColor(binding.root.context, severityColor)
             )
             

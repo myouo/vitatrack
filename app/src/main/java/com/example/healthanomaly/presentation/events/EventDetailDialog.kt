@@ -52,6 +52,14 @@ class EventDetailDialog : DialogFragment() {
         return binding.root
     }
     
+    override fun onStart() {
+        super.onStart()
+        dialog?.window?.setLayout(
+            (resources.displayMetrics.widthPixels * 0.9).toInt(),
+            ViewGroup.LayoutParams.WRAP_CONTENT
+        )
+    }
+    
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         
@@ -75,7 +83,7 @@ class EventDetailDialog : DialogFragment() {
         binding.tvType.text = formatType(event.type)
         binding.tvSeverity.text = "严重程度: ${event.severity}/10"
         binding.tvDetails.text = event.details
-        binding.tvAcknowledged.text = if (event.acknowledged) getString(R.string.acknowledged) else getString(R.string.cancel)
+        binding.tvAcknowledged.text = if (event.acknowledged) getString(R.string.acknowledged) else "否"
     }
     
     private fun formatType(type: AnomalyType): String {

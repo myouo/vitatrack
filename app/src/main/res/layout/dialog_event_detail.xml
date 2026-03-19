@@ -7,12 +7,23 @@
     android:orientation="vertical"
     android:padding="24dp">
 
+    <!-- Dialog Title -->
     <TextView
-        android:id="@+id/tv_type"
+        android:id="@+id/tv_title"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="@string/event_detail"
         android:textSize="18sp"
+        android:textStyle="bold" />
+
+    <!-- Event Type -->
+    <TextView
+        android:id="@+id/tv_type"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:text="心率异常"
+        android:textSize="16sp"
         android:textStyle="bold" />
 
     <TextView
