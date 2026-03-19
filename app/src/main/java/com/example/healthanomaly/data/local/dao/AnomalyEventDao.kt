@@ -27,7 +27,19 @@ interface AnomalyEventDao {
     suspend fun update(event: AnomalyEventEntity)
     
     /**
-     * Get all events ordered by timestamp descending.
+     * Get active (non-archived) events ordered by timestamp descending.
+     */
+    @Query("SELECT * FROM anomaly_events WHERE archived = 0 ORDER BY timestamp_ms DESC")
+    fun getActiveFlow(): Flow<List<AnomalyEventEntity>>
+    
+    /**
+     * Get archived events ordered by timestamp descending.
+     */
+    @Query("SELECT * FROM anomaly_events WHERE archived = 1 ORDER BY timestamp_ms DESC")
+    fun getArchivedFlow(): Flow<List<AnomalyEventEntity>>
+    
+    /**
+     * Get all events ordered by timestamp descending (including archived).
      */
     @Query("SELECT * FROM anomaly_events ORDER BY timestamp_ms DESC")
     fun getAllFlow(): Flow<List<AnomalyEventEntity>>
@@ -51,9 +63,20 @@ interface AnomalyEventDao {
     suspend fun getInRange(startMs: Long, endMs: Long): List<AnomalyEventEntity>
     
     /**
+     * Archive an event by ID.
+     */
+    @Query("UPDATE anomaly_events SET archived = 1 WHERE id = :eventId")
+    suspend fun archiveEvent(eventId: Long)
+    
+    /**
+     * Unarchive an event by ID.
+     */
+    @Query("UPDATE anomaly_events SET archived = 0 WHERE id = :eventId")
+    suspend fun unarchiveEvent(eventId: Long)
+    
+    /**
      * Delete all events.
      */
     @Query("DELETE FROM anomaly_events")
     suspend fun deleteAll()
 }
-    

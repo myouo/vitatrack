@@ -19,8 +19,16 @@ class EventsViewModel @Inject constructor(
     private val anomalyRepository: AnomalyRepository
 ) : ViewModel() {
     
-    // Events list
+    // Active (non-archived) events list
     val events: StateFlow<List<AnomalyEvent>> = anomalyRepository.anomalyEventsFlow
+        .stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5000),
+            initialValue = emptyList()
+        )
+    
+    // Archived events list
+    val archivedEvents: StateFlow<List<AnomalyEvent>> = anomalyRepository.archivedEventsFlow
         .stateIn(
             scope = viewModelScope,
             started = SharingStarted.WhileSubscribed(5000),
@@ -37,9 +45,28 @@ class EventsViewModel @Inject constructor(
     }
     
     /**
+     * Archive an event.
+     */
+    fun archiveEvent(eventId: Long) {
+        viewModelScope.launch {
+            anomalyRepository.archiveEvent(eventId)
+        }
+    }
+    
+    /**
+     * Unarchive an event.
+     */
+    fun unarchiveEvent(eventId: Long) {
+        viewModelScope.launch {
+            anomalyRepository.unarchiveEvent(eventId)
+        }
+    }
+    
+    /**
      * Get event details.
      */
     fun getEventDetails(eventId: Long): AnomalyEvent? {
         return events.value.find { it.id == eventId }
+            ?: archivedEvents.value.find { it.id == eventId }
     }
 }

@@ -9,6 +9,7 @@ package com.example.healthanomaly.domain.model
  * @property severity Severity level (1-10)
  * @property details Additional details about the anomaly
  * @property acknowledged Whether the user has acknowledged this event
+ * @property archived Whether the event has been archived
  */
 data class AnomalyEvent(
     val id: Long = 0,
@@ -16,5 +17,6 @@ data class AnomalyEvent(
     val type: AnomalyType,
     val severity: Int,
     val details: String,
-    val acknowledged: Boolean = false
+    val acknowledged: Boolean = false,
+    val archived: Boolean = false
 )

@@ -71,6 +71,13 @@
     <string name="cancel">取消</string>
     <string name="event_detail">事件详情</string>
 
+    <!-- Archive -->
+    <string name="archived_events">已归档</string>
+    <string name="event_archived">事件已归档</string>
+    <string name="event_unarchived">已取消归档</string>
+    <string name="undo">撤销</string>
+    <string name="no_archived_events">暂无已归档事件</string>
+
     <!-- Anomaly Types -->
     <string name="anomaly_hr_high">心率过高</string>
     <string name="anomaly_hr_low">心率过低</string>

@@ -9,9 +9,14 @@ import kotlinx.coroutines.flow.Flow
  */
 interface AnomalyRepository {
     /**
-     * Flow of all anomaly events.
+     * Flow of active (non-archived) anomaly events.
      */
     val anomalyEventsFlow: Flow<List<AnomalyEvent>>
+    
+    /**
+     * Flow of archived anomaly events.
+     */
+    val archivedEventsFlow: Flow<List<AnomalyEvent>>
     
     /**
      * Flow of recent feature windows.
@@ -54,6 +59,16 @@ interface AnomalyRepository {
      * Mark an event as acknowledged.
      */
     suspend fun acknowledgeEvent(eventId: Long)
+    
+    /**
+     * Archive an event.
+     */
+    suspend fun archiveEvent(eventId: Long)
+    
+    /**
+     * Unarchive an event.
+     */
+    suspend fun unarchiveEvent(eventId: Long)
     
     /**
      * Delete all data.

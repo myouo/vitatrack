@@ -27,7 +27,10 @@ data class AnomalyEventEntity(
     val details: String,
     
     @ColumnInfo(name = "acknowledged")
-    val acknowledged: Boolean = false
+    val acknowledged: Boolean = false,
+    
+    @ColumnInfo(name = "archived", defaultValue = "0")
+    val archived: Boolean = false
 ) {
     /**
      * Convert to domain model.
@@ -42,7 +45,8 @@ data class AnomalyEventEntity(
         },
         severity = severity,
         details = details,
-        acknowledged = acknowledged
+        acknowledged = acknowledged,
+        archived = archived
     )
     
     companion object {
@@ -55,7 +59,8 @@ data class AnomalyEventEntity(
             type = event.type.name,
             severity = event.severity,
             details = event.details,
-            acknowledged = event.acknowledged
+            acknowledged = event.acknowledged,
+            archived = event.archived
         )
     }
 }

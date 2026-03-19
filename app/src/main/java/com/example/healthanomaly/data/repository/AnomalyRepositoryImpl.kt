@@ -25,7 +25,12 @@ class AnomalyRepositoryImpl @Inject constructor(
     }
     
     override val anomalyEventsFlow: Flow<List<AnomalyEvent>> =
-        anomalyEventDao.getAllFlow().map { entities ->
+        anomalyEventDao.getActiveFlow().map { entities ->
+            entities.map { it.toDomain() }
+        }
+    
+    override val archivedEventsFlow: Flow<List<AnomalyEvent>> =
+        anomalyEventDao.getArchivedFlow().map { entities ->
             entities.map { it.toDomain() }
         }
     
@@ -58,6 +63,14 @@ class AnomalyRepositoryImpl @Inject constructor(
         event?.let {
             anomalyEventDao.update(it.copy(acknowledged = true))
         }
+    }
+    
+    override suspend fun archiveEvent(eventId: Long) {
+        anomalyEventDao.archiveEvent(eventId)
+    }
+    
+    override suspend fun unarchiveEvent(eventId: Long) {
+        anomalyEventDao.unarchiveEvent(eventId)
     }
     
     override suspend fun clearAllData() {

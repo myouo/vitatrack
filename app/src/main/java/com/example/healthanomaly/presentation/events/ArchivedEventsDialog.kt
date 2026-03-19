@@ -8,7 +8,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.core.content.ContextCompat
-import androidx.fragment.app.Fragment
+import androidx.fragment.app.DialogFragment
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
@@ -17,64 +17,59 @@ import androidx.recyclerview.widget.ItemTouchHelper
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.example.healthanomaly.R
-import com.example.healthanomaly.databinding.FragmentEventsBinding
-import com.example.healthanomaly.domain.model.AnomalyEvent
+import com.example.healthanomaly.databinding.DialogArchivedEventsBinding
 import com.google.android.material.snackbar.Snackbar
-import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 
 /**
- * Events fragment showing anomaly event list with swipe-to-archive.
+ * Dialog showing archived anomaly events with swipe-to-unarchive.
  */
-@AndroidEntryPoint
-class EventsFragment : Fragment() {
+class ArchivedEventsDialog : DialogFragment() {
     
-    private var _binding: FragmentEventsBinding? = null
+    private var _binding: DialogArchivedEventsBinding? = null
     private val binding get() = _binding!!
     
-    private val viewModel: EventsViewModel by viewModels()
-    private lateinit var adapter: EventsAdapter
+    private val viewModel: EventsViewModel by viewModels(ownerProducer = { requireParentFragment() })
+    private lateinit var adapter: ArchivedEventsAdapter
     
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View {
-        _binding = FragmentEventsBinding.inflate(inflater, container, false)
+        _binding = DialogArchivedEventsBinding.inflate(inflater, container, false)
         return binding.root
+    }
+    
+    override fun onStart() {
+        super.onStart()
+        dialog?.window?.setLayout(
+            (resources.displayMetrics.widthPixels * 0.92).toInt(),
+            (resources.displayMetrics.heightPixels * 0.7).toInt()
+        )
     }
     
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         
         setupRecyclerView()
-        setupSwipeToArchive()
-        observeEvents()
+        setupSwipeToUnarchive()
+        observeArchivedEvents()
         
-        binding.btnArchived.setOnClickListener {
-            ArchivedEventsDialog().show(childFragmentManager, "archived_events")
-        }
+        binding.btnClose.setOnClickListener { dismiss() }
     }
     
-    /**
-     * Set up RecyclerView.
-     */
     private fun setupRecyclerView() {
-        adapter = EventsAdapter { event ->
-            showEventDetail(event)
-        }
+        adapter = ArchivedEventsAdapter()
         
-        binding.recyclerViewEvents.apply {
+        binding.recyclerViewArchived.apply {
             layoutManager = LinearLayoutManager(requireContext())
-            adapter = this@EventsFragment.adapter
+            adapter = this@ArchivedEventsDialog.adapter
         }
     }
     
-    /**
-     * Set up swipe-to-archive using ItemTouchHelper.
-     */
-    private fun setupSwipeToArchive() {
+    private fun setupSwipeToUnarchive() {
         val swipeCallback = object : ItemTouchHelper.SimpleCallback(
             0, ItemTouchHelper.LEFT or ItemTouchHelper.RIGHT
         ) {
@@ -87,11 +82,11 @@ class EventsFragment : Fragment() {
             override fun onSwiped(viewHolder: RecyclerView.ViewHolder, direction: Int) {
                 val position = viewHolder.adapterPosition
                 val event = adapter.currentList[position]
-                viewModel.archiveEvent(event.id)
+                viewModel.unarchiveEvent(event.id)
                 
-                Snackbar.make(binding.root, R.string.event_archived, Snackbar.LENGTH_LONG)
+                Snackbar.make(binding.root, R.string.event_unarchived, Snackbar.LENGTH_LONG)
                     .setAction(R.string.undo) {
-                        viewModel.unarchiveEvent(event.id)
+                        viewModel.archiveEvent(event.id)
                     }
                     .show()
             }
@@ -108,12 +103,11 @@ class EventsFragment : Fragment() {
                 if (actionState == ItemTouchHelper.ACTION_STATE_SWIPE) {
                     val itemView = viewHolder.itemView
                     val paint = Paint().apply {
-                        color = ContextCompat.getColor(requireContext(), R.color.status_warning)
+                        color = ContextCompat.getColor(requireContext(), R.color.status_success)
                     }
-                    val cornerRadius = 20f * resources.displayMetrics.density
+                    val cornerRadius = 12f * resources.displayMetrics.density
                     
                     if (dX > 0) {
-                        // Swiping right
                         val rect = RectF(
                             itemView.left.toFloat(),
                             itemView.top.toFloat(),
@@ -122,7 +116,6 @@ class EventsFragment : Fragment() {
                         )
                         c.drawRoundRect(rect, cornerRadius, cornerRadius, paint)
                     } else if (dX < 0) {
-                        // Swiping left
                         val rect = RectF(
                             itemView.right + dX,
                             itemView.top.toFloat(),
@@ -132,29 +125,6 @@ class EventsFragment : Fragment() {
                         c.drawRoundRect(rect, cornerRadius, cornerRadius, paint)
                     }
                     
-                    // Draw archive icon
-                    val icon = ContextCompat.getDrawable(requireContext(), R.drawable.ic_archive)
-                    icon?.let {
-                        val iconSize = (24 * resources.displayMetrics.density).toInt()
-                        val iconMargin = (16 * resources.displayMetrics.density).toInt()
-                        val iconTop = itemView.top + (itemView.height - iconSize) / 2
-                        val iconBottom = iconTop + iconSize
-                        
-                        it.setTint(ContextCompat.getColor(requireContext(), R.color.white))
-                        
-                        if (dX > 0) {
-                            val iconLeft = itemView.left + iconMargin
-                            val iconRight = iconLeft + iconSize
-                            it.setBounds(iconLeft, iconTop, iconRight, iconBottom)
-                        } else {
-                            val iconRight = itemView.right - iconMargin
-                            val iconLeft = iconRight - iconSize
-                            it.setBounds(iconLeft, iconTop, iconRight, iconBottom)
-                        }
-                        it.draw(c)
-                    }
-                    
-                    // Fade the item view
                     val alpha = 1.0f - Math.abs(dX) / itemView.width.toFloat()
                     itemView.alpha = alpha
                     itemView.translationX = dX
@@ -164,20 +134,16 @@ class EventsFragment : Fragment() {
             }
         }
         
-        ItemTouchHelper(swipeCallback).attachToRecyclerView(binding.recyclerViewEvents)
+        ItemTouchHelper(swipeCallback).attachToRecyclerView(binding.recyclerViewArchived)
     }
     
-    /**
-     * Observe events.
-     */
-    private fun observeEvents() {
+    private fun observeArchivedEvents() {
         viewLifecycleOwner.lifecycleScope.launch {
             viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
-                viewModel.events.collectLatest { events ->
+                viewModel.archivedEvents.collectLatest { events ->
                     adapter.submitList(events)
                     
-                    // Show empty state if no events
-                    binding.tvEmptyState.visibility = if (events.isEmpty()) {
+                    binding.tvEmptyArchived.visibility = if (events.isEmpty()) {
                         View.VISIBLE
                     } else {
                         View.GONE
@@ -185,16 +151,6 @@ class EventsFragment : Fragment() {
                 }
             }
         }
-    }
-    
-    /**
-     * Show event detail dialog.
-     */
-    private fun showEventDetail(event: AnomalyEvent) {
-        EventDetailDialog.newInstance(event).show(
-            childFragmentManager,
-            "event_detail"
-        )
     }
     
     override fun onDestroyView() {
