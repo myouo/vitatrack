@@ -1,9 +1,8 @@
 package com.example.healthanomaly.presentation.dashboard
 
+import android.content.Intent
 import android.content.res.ColorStateList
-import android.net.Uri
 import android.os.Bundle
-import android.provider.OpenableColumns
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -17,6 +16,8 @@ import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import com.example.healthanomaly.R
 import com.example.healthanomaly.databinding.FragmentDashboardBinding
+import com.example.healthanomaly.presentation.results.BatchResultsActivity
+import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
@@ -28,11 +29,19 @@ class DashboardFragment : Fragment() {
     private val binding get() = _binding!!
 
     private val viewModel: DashboardViewModel by viewModels()
-    private val openDocumentLauncher = registerForActivityResult(
-        ActivityResultContracts.GetContent()
+    private val openFolderLauncher = registerForActivityResult(
+        ActivityResultContracts.OpenDocumentTree()
     ) { uri ->
         uri ?: return@registerForActivityResult
-        viewModel.loadStreamFile(uri, resolveDisplayName(uri))
+        persistReadPermission(uri)
+        viewModel.loadDatasetFolder(uri)
+    }
+    private val openZipLauncher = registerForActivityResult(
+        ActivityResultContracts.OpenDocument()
+    ) { uri ->
+        uri ?: return@registerForActivityResult
+        persistReadPermission(uri)
+        viewModel.loadDatasetZip(uri)
     }
 
     override fun onCreateView(
@@ -53,10 +62,13 @@ class DashboardFragment : Fragment() {
     private fun setupButtons() {
         binding.btnStartStop.setOnClickListener {
             if (viewModel.state.value.isCollecting) {
-                viewModel.stopPlayback()
+                viewModel.stopEvaluation()
             } else {
-                openDocumentLauncher.launch("*/*")
+                openSourceChooser()
             }
+        }
+        binding.btnBleConnect.setOnClickListener {
+            BatchResultsActivity.start(requireContext())
         }
     }
 
@@ -72,25 +84,43 @@ class DashboardFragment : Fragment() {
                 }
             }
         }
+
+        viewLifecycleOwner.lifecycleScope.launch {
+            viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
+                viewModel.completedReports.collectLatest {
+                    BatchResultsActivity.start(requireContext())
+                }
+            }
+        }
     }
 
     private fun updateUI(state: DashboardUiState) {
         binding.btnStartStop.text = if (state.isCollecting) {
-            getString(R.string.stop_playback)
+            getString(R.string.stop_evaluation)
         } else {
-            getString(R.string.load_stream_file)
+            getString(R.string.load_dataset)
         }
 
+        val activeIndex = if (state.isCollecting && state.totalSamples > 0) {
+            minOf(state.totalSamples, state.completedSamples + 1)
+        } else {
+            state.completedSamples
+        }
         binding.tvCollectionStatus.text = if (state.isCollecting) {
-            getString(R.string.status_playing_file)
+            getString(R.string.status_running_dataset, activeIndex, state.totalSamples)
         } else {
-            getString(R.string.status_waiting_file)
+            getString(R.string.status_waiting_dataset)
         }
 
-        binding.tvBleStatus.text = if (state.isCollecting && state.isSourceActive) {
+        binding.tvBleStatus.text = if (state.isCollecting && state.currentSampleName != null) {
             getString(
-                R.string.stream_source_loaded,
-                state.sourceName ?: getString(R.string.stream_default_name)
+                R.string.dataset_sample_label,
+                state.currentSampleName
+            )
+        } else if (state.datasetName != null) {
+            getString(
+                R.string.dataset_loaded,
+                state.datasetName
             )
         } else {
             getString(R.string.stream_source_idle)
@@ -112,6 +142,12 @@ class DashboardFragment : Fragment() {
 
         updateIndicator(binding.statusIndicator, state.isCollecting)
         updateIndicator(binding.bleStatusIndicator, state.isCollecting && state.isSourceActive)
+        binding.btnBleConnect.visibility = if (state.hasResults && !state.isCollecting) {
+            View.VISIBLE
+        } else {
+            View.GONE
+        }
+        binding.btnBleConnect.text = getString(R.string.view_results)
     }
 
     private fun updateIndicator(target: View, isActive: Boolean) {
@@ -121,19 +157,28 @@ class DashboardFragment : Fragment() {
         )
     }
 
-    private fun resolveDisplayName(uri: Uri): String? {
-        return requireContext().contentResolver.query(
-            uri,
-            arrayOf(OpenableColumns.DISPLAY_NAME),
-            null,
-            null,
-            null
-        )?.use { cursor ->
-            if (!cursor.moveToFirst()) {
-                return@use null
+    private fun openSourceChooser() {
+        val options = arrayOf(
+            getString(R.string.dataset_source_folder),
+            getString(R.string.dataset_source_zip)
+        )
+        MaterialAlertDialogBuilder(requireContext())
+            .setTitle(R.string.dataset_source_title)
+            .setItems(options) { _, which ->
+                when (which) {
+                    0 -> openFolderLauncher.launch(null)
+                    1 -> openZipLauncher.launch(arrayOf("application/zip", "application/octet-stream"))
+                }
             }
-            val columnIndex = cursor.getColumnIndex(OpenableColumns.DISPLAY_NAME)
-            if (columnIndex < 0) null else cursor.getString(columnIndex)
+            .show()
+    }
+
+    private fun persistReadPermission(uri: android.net.Uri) {
+        runCatching {
+            requireContext().contentResolver.takePersistableUriPermission(
+                uri,
+                Intent.FLAG_GRANT_READ_URI_PERMISSION
+            )
         }
     }
 

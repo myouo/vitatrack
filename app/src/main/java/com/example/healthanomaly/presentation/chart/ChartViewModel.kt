@@ -2,6 +2,7 @@ package com.example.healthanomaly.presentation.chart
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.healthanomaly.core.BatchEvaluationManager
 import com.example.healthanomaly.core.PlaybackSessionManager
 import com.example.healthanomaly.domain.model.FeatureWindow
 import com.example.healthanomaly.domain.repository.AnomalyRepository
@@ -12,28 +13,71 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
 
+private data class ChartLiveSnapshot(
+    val featureWindows: List<FeatureWindow>,
+    val isRunning: Boolean,
+    val currentHeartRate: Int?,
+    val currentStepFreq: Float?
+)
+
 @HiltViewModel
 class ChartViewModel @Inject constructor(
     private val anomalyRepository: AnomalyRepository,
-    private val playbackSessionManager: PlaybackSessionManager
+    private val playbackSessionManager: PlaybackSessionManager,
+    private val batchEvaluationManager: BatchEvaluationManager
 ) : ViewModel() {
 
-    val state: StateFlow<ChartUiState> = combine(
-        anomalyRepository.featureWindowsFlow,
+    private val playbackSnapshot = combine(
         playbackSessionManager.recentFeatureWindows,
         playbackSessionManager.isRunning,
         playbackSessionManager.currentHeartRate,
         playbackSessionManager.currentStepFreq
-    ) { persistedWindows, liveWindows, isRunning, heartRate, stepFreq ->
+    ) { featureWindows, isRunning, currentHeartRate, currentStepFreq ->
+        ChartLiveSnapshot(
+            featureWindows = featureWindows,
+            isRunning = isRunning,
+            currentHeartRate = currentHeartRate,
+            currentStepFreq = currentStepFreq
+        )
+    }
+
+    private val batchSnapshot = combine(
+        batchEvaluationManager.recentFeatureWindows,
+        batchEvaluationManager.isRunning,
+        batchEvaluationManager.currentHeartRate,
+        batchEvaluationManager.currentStepFreq
+    ) { featureWindows, isRunning, currentHeartRate, currentStepFreq ->
+        ChartLiveSnapshot(
+            featureWindows = featureWindows,
+            isRunning = isRunning,
+            currentHeartRate = currentHeartRate,
+            currentStepFreq = currentStepFreq
+        )
+    }
+
+    val state: StateFlow<ChartUiState> = combine(
+        anomalyRepository.featureWindowsFlow,
+        playbackSnapshot,
+        batchSnapshot
+    ) { persistedWindows, playbackSnapshot, batchSnapshot ->
         val chartWindows = when {
-            isRunning || liveWindows.isNotEmpty() -> liveWindows
+            batchSnapshot.isRunning || batchSnapshot.featureWindows.isNotEmpty() -> batchSnapshot.featureWindows
+            playbackSnapshot.isRunning || playbackSnapshot.featureWindows.isNotEmpty() -> playbackSnapshot.featureWindows
             else -> persistedWindows.asReversed().takeLast(60)
         }
 
         ChartUiState(
             featureWindows = chartWindows,
-            currentHeartRate = heartRate,
-            currentStepFreq = stepFreq
+            currentHeartRate = if (batchSnapshot.isRunning) {
+                batchSnapshot.currentHeartRate
+            } else {
+                playbackSnapshot.currentHeartRate
+            },
+            currentStepFreq = if (batchSnapshot.isRunning) {
+                batchSnapshot.currentStepFreq
+            } else {
+                playbackSnapshot.currentStepFreq
+            }
         )
     }.stateIn(
         scope = viewModelScope,

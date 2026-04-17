@@ -11,6 +11,7 @@ import com.example.healthanomaly.domain.model.ImuData
 import com.example.healthanomaly.domain.repository.BleConnectionState
 import com.example.healthanomaly.domain.repository.BleDevice
 import dagger.hilt.android.qualifiers.ApplicationContext
+import java.io.File
 import javax.inject.Inject
 import javax.inject.Singleton
 import kotlinx.coroutines.CancellationException
@@ -96,6 +97,27 @@ class FilePlaybackManager @Inject constructor(
                 TAG,
                 "Loaded stream '$resolvedName' with rawLineCount=$rawLineCount, parsedSampleCount=${rows.size}, normalizedDurationMs=$durationMs"
             )
+
+            currentStream = StreamContent(
+                samples = rows,
+                displayName = resolvedName
+            )
+            publishVirtualSource(resolvedName)
+
+            LoadedStreamInfo(
+                displayName = resolvedName,
+                sampleCount = rows.size
+            )
+        }
+
+    suspend fun loadStreamFile(file: File, displayName: String? = null): LoadedStreamInfo =
+        withContext(Dispatchers.IO) {
+            val content = file.readText()
+            val resolvedName = displayName ?: file.name
+            val rows = parseContent(resolvedName, content)
+            if (rows.isEmpty()) {
+                throw IllegalArgumentException("No valid stream samples found")
+            }
 
             currentStream = StreamContent(
                 samples = rows,

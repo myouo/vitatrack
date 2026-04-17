@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="load_dataset">Load Dataset</string>
+    <string name="stop_evaluation">Stop Evaluation</string>
+    <string name="status_waiting_dataset">Status: waiting for dataset</string>
+    <string name="status_running_dataset">Status: evaluating %1$d/%2$d</string>
+    <string name="dataset_source_title">Choose Dataset Source</string>
+    <string name="dataset_source_card_title">Dataset Source</string>
+    <string name="dataset_source_folder">Folder</string>
+    <string name="dataset_source_zip">ZIP Archive</string>
+    <string name="dataset_loaded">Dataset: %1$s</string>
+    <string name="dataset_sample_label">Sample: %1$s</string>
+    <string name="view_results">View Results</string>
+    <string name="batch_results_title">Batch Results</string>
+    <string name="batch_results_empty">No evaluation report is available yet.</string>
+    <string name="batch_export_reports">Export JSON and CSV</string>
+    <string name="batch_export_success">Reports exported.</string>
+    <string name="batch_export_failed">Failed to export reports.</string>
+    <string name="batch_accuracy">Accuracy: %1$.1f%%</string>
+    <string name="batch_summary_line">Completed %1$d/%2$d | NONE predictions: %3$d | %4$s</string>
+    <string name="batch_status_complete">Complete</string>
+    <string name="batch_status_cancelled">Cancelled</string>
+    <string name="batch_report_dataset">Dataset: %1$s</string>
+    <string name="batch_report_started">Started: %1$s</string>
+    <string name="batch_report_finished">Finished: %1$s</string>
+    <string name="batch_class_metrics_title">Class Metrics</string>
+    <string name="batch_confusion_matrix_title">Confusion Matrix</string>
+    <string name="batch_results_list_title">Sample Results</string>
+    <string name="batch_result_pass">PASS</string>
+    <string name="batch_result_fail">FAIL</string>
+    <string name="batch_result_expected">Expected: %1$s</string>
+    <string name="batch_result_predicted">Predicted: %1$s</string>
+    <string name="batch_result_detected">Detected: %1$s</string>
+    <string name="batch_result_elapsed">Elapsed: %1$d ms</string>
+    <string name="batch_result_error">Error: %1$s</string>
+</resources>

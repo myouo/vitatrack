@@ -61,6 +61,11 @@
             </intent-filter>
         </activity>
 
+        <activity
+            android:name=".presentation.results.BatchResultsActivity"
+            android:exported="false"
+            android:theme="@style/Theme.HealthAnomaly" />
+
         <!-- Data Collection Foreground Service -->
         <service
             android:name=".service.DataCollectionService"

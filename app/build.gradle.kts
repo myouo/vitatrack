@@ -65,6 +65,7 @@ dependencies {
 
     // Fragment
     implementation("androidx.fragment:fragment-ktx:1.6.2")
+    implementation("androidx.documentfile:documentfile:1.0.1")
 
     // Navigation
     implementation("androidx.navigation:navigation-fragment-ktx:2.7.6")
