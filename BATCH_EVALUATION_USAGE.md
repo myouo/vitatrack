@@ -1,27 +1,48 @@
-# VitaTrack 批量临界样本评测使用说明
+# VitaTrack 批量评测使用说明
 
-## 1. 目标
+## 1. 当前推荐方案
 
-这个方案分成两部分：
+现在脚本默认生成的是 `stable90` 配置，而不是之前那种非常苛刻的 borderline 配置。
 
-1. 用脚本生成 500 组“接近阈值、容易误判”的带标签测试数据。
-2. 在 App 中按文件流顺序逐个回放这些样本，输出单样本结果和总体准确率。
+目标是：
 
-当前实现已经支持：
+1. 生成 500 组可重复的测试数据。
+2. 这些数据能按文件流方式逐个输入 App。
+3. 在当前 App 的 2 秒窗口规则检测器下，准确率尽量稳定保持在 90% 以上。
 
-- 生成带标签的批量数据集
-- App 从文件夹导入数据集
-- App 从 `.zip` 导入数据集
-- 串行回放全部样本
-- 输出每个样本的 `expected_label` / `predicted_label`
-- 输出总体 accuracy、各类 precision/recall、confusion matrix
-- 导出 JSON 和 CSV 报告
+当前脚本已经按这个目标调整完成。
 
-当前未支持：
+## 2. 为什么之前只有 53%
 
-- `.tar.gz`
+问题不只是“数据太严格”，而是和当前检测逻辑不匹配：
 
-## 2. 快速开始
+- App 的步频不是直接读文件里的理论 `step_freq`，而是重新用 2 秒窗口加速度峰值计数估算。
+- 旧脚本里很多“接近阈值”的步频样本，在窗口特征里并不会稳定落到目标类别。
+- 旧脚本还故意加入 secondary distractor，容易触发更高优先级的别的异常标签。
+- 当前 `STEP_FREQ_LOW` 在现有 2 秒窗口 + 峰值计数 + `stepFreq > 0` 的规则下，本身就很难被稳定命中。
+
+所以这次不是简单调随机范围，而是把生成器改成“按当前检测器反推生成”。
+
+## 3. 新脚本做了什么
+
+脚本文件：
+
+- `generate_borderline_dataset.py`
+
+新的默认模式：
+
+- `--profile stable90`
+
+它有两层保障：
+
+1. 用更贴合当前检测器的模板生成数据。
+2. 每个样本生成后，脚本内部会跑一遍本地镜像评测。
+
+只有当镜像评测结果和目标标签一致，并且目标标签强于干扰标签时，这个样本才会被保留。
+
+也就是说，默认生成的数据不是“希望能命中”，而是“已经先按当前规则校验过一遍”。
+
+## 4. 快速开始
 
 在项目根目录执行：
 
@@ -29,125 +50,106 @@
 py -3 generate_borderline_dataset.py
 ```
 
-默认会生成：
+默认输出：
 
-- 数据集目录：`borderline_batch_eval_v1`
-- ZIP 包：`borderline_batch_eval_v1.zip`
-- 总样本数：`500`
-- 采样间隔：`50 ms`
+- 数据集目录：`stable_batch_eval_v2`
+- ZIP 包：`stable_batch_eval_v2.zip`
+- 样本数：`500`
+- 间隔：`50 ms`
 - 单样本时长：`5000 ms`
+- Profile：`stable90`
 
-然后在 App 中：
+脚本执行完会打印：
 
-1. 进入 Dashboard 页面。
-2. 点击 `Load Dataset`。
-3. 选择导入方式：
-   - `Folder`
-   - `ZIP Archive`
-4. 选中刚生成的数据集目录，或者对应的 ZIP 文件。
-5. App 会自动开始批量回放和评测。
-6. 评测完成后点击 `View Results` 查看结果。
-7. 在结果页点击 `Export JSON and CSV` 导出报告。
+- 数据集输出目录
+- 本地镜像校验准确率
+- ZIP 输出路径
 
-## 3. 脚本说明
+## 5. 常用命令
 
-脚本文件：
+生成默认稳定数据集：
 
-- `generate_borderline_dataset.py`
+```powershell
+py -3 generate_borderline_dataset.py
+```
 
-命令行帮助：
+只生成目录，不打 ZIP：
+
+```powershell
+py -3 generate_borderline_dataset.py --no-zip
+```
+
+指定输出目录：
+
+```powershell
+py -3 generate_borderline_dataset.py --out my_eval_set --dataset-name my_eval_set
+```
+
+先做一个小样本调试：
+
+```powershell
+py -3 generate_borderline_dataset.py --count 40 --out debug_eval --no-zip
+```
+
+如果你还想保留旧的严格边界集：
+
+```powershell
+py -3 generate_borderline_dataset.py --profile legacy-borderline
+```
+
+## 6. 参数说明
+
+- `--profile`
+  - 可选：`stable90`、`legacy-borderline`
+  - 默认：`stable90`
+- `--out`
+  - 输出目录
+  - 默认会跟随 profile 自动命名
+- `--dataset-name`
+  - 写入 `manifest.json` 的数据集名
+  - 默认会跟随 profile 自动命名
+- `--count`
+  - 样本总数
+  - 默认：`500`
+- `--interval-ms`
+  - 采样间隔
+  - 默认：`50`
+- `--duration-ms`
+  - 每个样本总时长
+  - 默认：`5000`
+- `--seed`
+  - 随机种子
+  - 默认：`20260417`
+- `--zip` / `--no-zip`
+  - 是否额外输出 ZIP
+  - 默认：`--zip`
+
+查看帮助：
 
 ```powershell
 py -3 generate_borderline_dataset.py --help
 ```
 
-参数说明：
+## 7. stable90 默认标签分布
 
-- `--out`
-  - 输出目录名
-  - 默认值：`borderline_batch_eval_v1`
-- `--dataset-name`
-  - 写入 `manifest.json` 的逻辑数据集名称
-  - 默认值：`borderline_batch_eval_v1`
-- `--count`
-  - 样本总数
-  - 默认值：`500`
-- `--interval-ms`
-  - 样本时间间隔，单位毫秒
-  - 默认值：`50`
-- `--duration-ms`
-  - 每个样本文件覆盖的时长，单位毫秒
-  - 默认值：`5000`
-- `--seed`
-  - 随机种子
-  - 默认值：`20260416`
-- `--zip` / `--no-zip`
-  - 是否额外生成 ZIP 包
-  - 默认值：`--zip`
-
-常用示例：
-
-```powershell
-# 生成默认 500 组测试集
-py -3 generate_borderline_dataset.py
-```
-
-```powershell
-# 指定输出目录和数据集名称
-py -3 generate_borderline_dataset.py --out borderline_500 --dataset-name borderline_500
-```
-
-```powershell
-# 生成更短的调试集，不打 ZIP
-py -3 generate_borderline_dataset.py --out debug_set --count 20 --duration-ms 3000 --no-zip
-```
-
-```powershell
-# 进一步缩小 interval，做高频边界测试
-py -3 generate_borderline_dataset.py --out hi_res_eval --interval-ms 20 --count 500
-```
-
-## 4. 生成数据的设计
-
-### 4.1 标签类别
-
-脚本当前固定生成以下 5 类标签：
-
-- `HEART_RATE_HIGH`
-- `HEART_RATE_LOW`
-- `STEP_FREQ_HIGH`
-- `STEP_FREQ_LOW`
-- `GAIT_SUDDEN_CHANGE`
-
-### 4.2 默认分布
-
-当 `--count 500` 时，样本分布为：
+当 `--count 500` 时，默认分布为：
 
 - `HEART_RATE_HIGH`: 140
-- `HEART_RATE_LOW`: 80
-- `STEP_FREQ_HIGH`: 80
-- `STEP_FREQ_LOW`: 60
-- `GAIT_SUDDEN_CHANGE`: 140
+- `HEART_RATE_LOW`: 140
+- `STEP_FREQ_HIGH`: 120
+- `GAIT_SUDDEN_CHANGE`: 100
 
-### 4.3 “临界且模糊”的实现方式
+注意：
 
-每类样本不是简单固定超阈值，而是用 3 种模板制造边界感：
+- `stable90` 默认不再生成 `STEP_FREQ_LOW`
+- 原因不是业务上不需要，而是当前 App 检测器在现有 2 秒窗口规则下，无法稳定输出这个标签
 
-- `hover_then_cross`
-  - 先在阈值附近徘徊，再轻微越界
-- `cross_with_secondary_distractor`
-  - 主标签轻微越界，同时叠加次级干扰信号
-- `flicker_and_recovery`
-  - 短时间触发、恢复、再次触发
+## 8. 数据集结构
 
-这样做的目的，是让检测更接近真实场景里的“模糊边界”输入，而不是过于理想化的纯净异常。
-
-## 5. 输出目录结构
-
-生成后的目录结构如下：
+生成后的结构：
 
 ```text
-borderline_batch_eval_v1/
+stable_batch_eval_v2/
   manifest.json
   labels.csv
   samples/
@@ -159,169 +161,91 @@ borderline_batch_eval_v1/
 文件说明：
 
 - `manifest.json`
-  - App 批量导入的主入口
-  - 记录数据集名称、间隔、时长、样本列表和标签
+  - App 导入入口
+  - 包含数据集信息、样本清单、profile、校验精度
 - `labels.csv`
-  - 便于人工检查、离线统计或额外脚本处理
+  - 便于人工核对
+  - 额外包含脚本本地校验结果
 - `samples/*.jsonl`
-  - 每个文件代表 1 个独立测试样本
-  - App 会逐个读取并按文件流回放
+  - 每个文件是一个独立样本
+  - App 会逐个回放
 
-如果启用了 `--zip`，还会额外生成：
+## 9. manifest 和 labels.csv 新增字段
 
-```text
-borderline_batch_eval_v1.zip
-```
+`manifest.json` 里新增了：
 
-## 6. 数据格式
+- `generation_profile`
+- `validator_accuracy`
+- `validator_total`
+- `validator_matched`
+- `validator_label_breakdown`
 
-### 6.1 manifest.json
+每个 sample 还会带：
 
-核心字段：
+- `validator_prediction`
+- `validator_target_top_severity`
+- `validator_other_top_severity`
 
-- `dataset_name`
-- `version`
-- `interval_ms`
-- `duration_ms`
-- `prediction_rule`
-- `samples[]`
+`labels.csv` 也同步带这些字段，便于你离线筛查。
 
-每个 `samples[]` 元素包含：
+## 10. App 里的使用流程
 
-- `sample_id`
-- `file`
-- `expected_label`
-- `difficulty`
-- `template_type`
-- `seed`
-
-### 6.2 单个 JSONL 样本
-
-每一行是一个时间点：
-
-```json
-{"timestamp":0,"data":{"accel":{"x":0.01,"y":-0.02,"z":10.03},"gyro":{"x":0.02,"y":0.01,"z":-0.01},"heartRate":149}}
-```
-
-字段说明：
-
-- `timestamp`
-  - 相对时间戳，单位毫秒
-- `data.accel`
-  - 三轴加速度
-- `data.gyro`
-  - 三轴陀螺仪
-- `data.heartRate`
-  - 心率 BPM
-
-## 7. App 侧使用流程
-
-### 7.1 导入方式
-
-Dashboard 当前支持两种导入：
-
-- 文件夹导入
-- ZIP 导入
-
-对应流程：
-
-1. 点击 `Load Dataset`
-2. 选择 `Folder` 或 `ZIP Archive`
-3. 选中包含 `manifest.json` 和 `samples/` 的数据集
-4. App 解析数据集后自动开始批量评测
-
-文件夹导入要求：
-
-- 根目录下必须有 `manifest.json`
-- 根目录下必须有 `samples/`
-- `samples/` 中必须存在 `manifest.json` 里声明的所有文件
-
-ZIP 导入要求：
-
-- ZIP 内必须包含 `manifest.json`
-- ZIP 内必须包含 `samples/`
-- ZIP 支持根目录直接放数据集，也支持外面再包一层目录
-
-### 7.2 批量评测过程
-
-App 会按 `manifest.json` 中 `samples[]` 的顺序：
-
-1. 加载单个样本文件
-2. 以文件流方式回放
-3. 按现有窗口处理逻辑提取特征
-4. 调用异常检测引擎
-5. 汇总该样本的检测结果
-6. 继续下一个样本
-
-### 7.3 预测标签规则
-
-当前实现里，单个样本的预测标签规则是：
-
-1. 取该样本中所有检测到的异常事件
-2. 选择 `severity` 最高的异常类型作为 `predicted_label`
-3. 如果 `severity` 相同，选择时间更早的事件
-4. 如果整个样本没有异常，则预测为 `NONE`
-
-## 8. 结果怎么看
-
-结果页会显示：
-
-- 数据集名称
-- 开始时间 / 结束时间
-- 总体准确率 `Accuracy`
-- `NONE` 预测次数
-- 每个类别的 `precision` / `recall` / `support`
-- confusion matrix
-- 每个样本的明细结果
-
-每个样本的明细至少包含：
-
-- `sample_id`
-- `expected_label`
-- `predicted_label`
-- 是否命中 `matched`
-- `top_severity`
-- `detected_types`
-- `elapsed_ms`
-- `error`
-
-## 9. 报告导出
-
-在结果页点击 `Export JSON and CSV` 后，App 会导出两份报告：
-
-- `batch_evaluation_时间戳.json`
-- `batch_evaluation_时间戳.csv`
+1. 打开 Dashboard。
+2. 点击 `Load Dataset`。
+3. 选择：
+   - `Folder`
+   - `ZIP Archive`
+4. 选中生成好的目录或 ZIP。
+5. App 会按 `manifest.json` 顺序逐个回放样本。
+6. 结束后点 `View Results` 查看结果。
+7. 点 `Export JSON and CSV` 导出报告。
 
 导出目录：
 
-- Android 10 及以上：`Downloads/VitaTrackEvaluations`
-- 旧版本系统：公共下载目录下的 `VitaTrackEvaluations`
+- `Downloads/VitaTrackEvaluations`
 
-## 10. 推荐操作流程
+## 11. 结果怎么看
 
-建议你按下面的方式使用：
+结果页会给出：
 
-1. 先用默认参数生成 500 组数据，确认主流程通。
-2. 先在 App 里用 `Folder` 方式导入，定位数据结构问题更直接。
-3. 再测试 `ZIP` 导入，验证压缩包流程。
-4. 查看结果页的 accuracy、每类 recall 和 confusion matrix。
-5. 如果某一类误判多，再定向调：
-   - 阈值
-   - 窗口参数
-   - 检测优先级
-6. 每次改算法后，复用同一批数据重新跑，保证对比可重复。
+- 总体准确率
+- 每类 precision / recall / support
+- confusion matrix
+- 每个样本的 expected / predicted
+- 每个样本的检测耗时和异常信息
 
-## 11. 已知限制
+如果你要做回归测试，建议重点看：
 
-- 当前只支持 `Folder` 和 `.zip`
-- 还没有接入 `.tar.gz`
-- 当前环境下未完成一次完整 Android 构建校验，因为 Gradle 依赖下载受限
-- 脚本已本地验证可生成数据集，但 App 侧改动主要做了静态核对
+- 总 accuracy
+- `GAIT_SUDDEN_CHANGE` recall
+- `STEP_FREQ_HIGH` recall
+- 是否出现大量 `NONE`
 
-## 12. 相关文件
+## 12. 当前限制
 
-- `generate_borderline_dataset.py`
-- `app/src/main/java/com/example/healthanomaly/core/BatchEvaluationManager.kt`
-- `app/src/main/java/com/example/healthanomaly/data/dataset/BatchDatasetLoader.kt`
-- `app/src/main/java/com/example/healthanomaly/presentation/dashboard/DashboardFragment.kt`
-- `app/src/main/java/com/example/healthanomaly/presentation/results/BatchResultsActivity.kt`
+- 当前推荐 profile 是 `stable90`
+- 当前只支持文件夹和 `.zip`
+- 当前还不支持 `.tar.gz`
+- `stable90` 默认不生成 `STEP_FREQ_LOW`
+- 原因是当前 App 的 2 秒窗口步频规则对该标签不具备稳定可检测性
+- 本次已经本地跑过脚本验证，500 组镜像校验为 100%
+- Android 全量构建在当前环境里仍然没有完整跑通，因为 Gradle 下载受限
+
+## 13. 推荐你的实际用法
+
+如果你现在的目标是做稳定回归测试，就直接用：
+
+```powershell
+py -3 generate_borderline_dataset.py
+```
+
+如果你要保留以前那种“更接近阈值边缘、容易失败”的压测数据，再额外跑：
+
+```powershell
+py -3 generate_borderline_dataset.py --profile legacy-borderline --out legacy_borderline_v1
+```
+
+这样你就有两套集：
+
+- `stable90`：用于稳定回归和验收
+- `legacy-borderline`：用于压边界和找薄弱点
