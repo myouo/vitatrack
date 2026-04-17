@@ -96,6 +96,43 @@ BASE_SEVERITIES = {
 }
 
 
+def profile_class_weights(profile):
+    return STABLE_CLASS_WEIGHTS if profile == PROFILE_STABLE90 else LEGACY_CLASS_WEIGHTS
+
+
+def required_duration_ms(profile):
+    labels = set(profile_class_weights(profile))
+    required_windows = 2 if "GAIT_SUDDEN_CHANGE" in labels else 1
+    return APP_WINDOW_SIZE_MS + APP_STEP_SIZE_MS * (required_windows - 1)
+
+
+def validate_generation_args(args):
+    if args.count <= 0:
+        raise ValueError("--count must be greater than 0.")
+    if args.interval_ms <= 0:
+        raise ValueError("--interval-ms must be greater than 0.")
+    if args.duration_ms <= 0:
+        raise ValueError("--duration-ms must be greater than 0.")
+
+    min_duration_ms = required_duration_ms(args.profile)
+    if args.duration_ms < min_duration_ms:
+        if "GAIT_SUDDEN_CHANGE" in profile_class_weights(args.profile):
+            requirement_reason = (
+                "this profile includes GAIT_SUDDEN_CHANGE, and the current App detector "
+                "needs two windows (2000ms + 1000ms overlap step) to emit that label"
+            )
+        else:
+            requirement_reason = (
+                "the current App detector needs at least one full 2000ms window "
+                "before any label can be emitted"
+            )
+        raise ValueError(
+            f"--duration-ms={args.duration_ms} is too short for profile '{args.profile}'. "
+            f"Minimum supported duration is {min_duration_ms}ms because {requirement_reason}. "
+            f"Try --duration-ms {min_duration_ms} or higher."
+        )
+
+
 def scale_distribution(total_count, class_weights):
     total_weight = sum(class_weights.values())
     scaled = {}
@@ -305,7 +342,7 @@ def resolve_signal_profile_legacy(label, template_type, index, total_points, con
 
 def generate_legacy_sample_records(label, template_type, seed, interval_ms, duration_ms):
     rng = random.Random(seed)
-    total_points = max(1, duration_ms // interval_ms)
+    total_points = max(1, duration_ms // interval_ms + 1)
     config = choose_ranges_legacy(label, template_type, rng)
     records = []
 
@@ -465,7 +502,7 @@ def resolve_stable_state(label, template_type, progress, config):
 
 def generate_stable_sample_records(label, template_type, seed, interval_ms, duration_ms):
     rng = random.Random(seed)
-    total_points = max(1, duration_ms // interval_ms)
+    total_points = max(1, duration_ms // interval_ms + 1)
     config = build_stable_config(label, template_type, rng)
     records = []
     phase = config["phase_offset"]
@@ -859,6 +896,7 @@ def build_validation_summary(validation_rows):
 
 
 def build_dataset(args):
+    validate_generation_args(args)
     output_dir = Path(args.out).resolve()
     if output_dir.exists():
         shutil.rmtree(output_dir)
@@ -987,7 +1025,16 @@ def parse_args():
     parser.add_argument("--dataset-name", default=None, help="Logical dataset name.")
     parser.add_argument("--count", type=int, default=DEFAULT_COUNT, help="Total sample count.")
     parser.add_argument("--interval-ms", type=int, default=DEFAULT_INTERVAL_MS, help="Sample interval in milliseconds.")
-    parser.add_argument("--duration-ms", type=int, default=DEFAULT_DURATION_MS, help="Duration of each sample in milliseconds.")
+    parser.add_argument(
+        "--duration-ms",
+        type=int,
+        default=DEFAULT_DURATION_MS,
+        help=(
+            "Duration of each sample in milliseconds. "
+            "For the current profiles, the minimum supported value is 3000ms "
+            "because GAIT_SUDDEN_CHANGE needs two detection windows."
+        ),
+    )
     parser.add_argument("--seed", type=int, default=DEFAULT_SEED, help="Base RNG seed.")
     parser.add_argument("--zip", action=argparse.BooleanOptionalAction, default=True, help="Also emit a ZIP archive.")
     args = parser.parse_args()
@@ -1002,7 +1049,11 @@ def parse_args():
 
 def main():
     args = parse_args()
-    output_dir, zip_path, validation_summary = build_dataset(args)
+    try:
+        output_dir, zip_path, validation_summary = build_dataset(args)
+    except (ValueError, RuntimeError) as exc:
+        raise SystemExit(str(exc))
+
     print(f"Dataset written to {output_dir}")
     print(
         "Validator accuracy: "

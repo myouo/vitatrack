@@ -117,6 +117,8 @@ py -3 generate_borderline_dataset.py --profile legacy-borderline
 - `--duration-ms`
   - 每个样本总时长
   - 默认：`5000`
+  - 当前 `stable90` 和 `legacy-borderline` 的最小支持值是 `3000`
+  - 原因是这两个 profile 都包含 `GAIT_SUDDEN_CHANGE`，而当前 App 需要至少两个检测窗口才可能输出该标签
 - `--seed`
   - 随机种子
   - 默认：`20260417`
@@ -238,6 +240,12 @@ stable_batch_eval_v2/
 ```powershell
 py -3 generate_borderline_dataset.py
 ```
+
+如果你要自定义时长，先记住这个下限：
+
+- `--duration-ms < 3000` 在当前 App 检测逻辑下不可行
+- `1000ms` 这种样本在时间轴归一化后，连第一帧 `2000ms` 检测窗口都到不了
+- 如果你确实需要评测真实 `1000ms` 文件，就不是改脚本，而是要把 App 的窗口逻辑一起改短
 
 如果你要保留以前那种“更接近阈值边缘、容易失败”的压测数据，再额外跑：
 
